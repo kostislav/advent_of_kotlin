@@ -1,5 +1,6 @@
 package cz.judas.jan.advent
 
+import com.google.common.collect.Ordering
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import kotlin.experimental.ExperimentalTypeInference
@@ -20,6 +21,10 @@ fun Iterator<Int>.sum() : Int {
 
 fun <T : Comparable<T>> Iterator<T>.max() : T {
     return asSequence().maxOrNull()!!
+}
+
+fun <T : Comparable<T>> Iterator<T>.maxN(howMany: Int) : List<T> {
+    return Ordering.natural<T>().greatestOf(this, howMany)
 }
 
 @OptIn(ExperimentalTypeInference::class)
