@@ -27,10 +27,10 @@ fun <T> List<T>.splitOn(predicate: (T) -> Boolean): List<List<T>> {
 }
 
 class InputData(private val source: () -> InputStream) {
-    fun <T> transformLines(transformation: (List<String>) -> T): T {
+    fun lines(): List<String> {
         return source()
             .reader(StandardCharsets.UTF_8)
-            .useLines { transformation(it.toList()) }
+            .useLines { it.toList() }
     }
 
     companion object {

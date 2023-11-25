@@ -1,25 +1,20 @@
 package cz.judas.jan.advent
 
 fun part1(input: InputData) {
-    val largestElf = input.transformLines { lines ->
-        lines
-            .splitOn { it.isEmpty() }
-            .map { chunk -> chunk.map { it.toInt() }.sum() }
-            .max()
-    }
+    val largestElf = input.lines()
+        .splitOn { it.isEmpty() }
+        .maxOfOrNull { chunk -> chunk.sumOf { it.toInt() } }
 
     println(largestElf)
 }
 
 
 fun part2(input: InputData) {
-    val largest3Elves = input.transformLines { lines ->
-        lines
-            .splitOn { it.isEmpty() }
-            .map { chunk -> chunk.map { it.toInt() }.sum() }
-            .maxN(3)
-            .sum()
-    }
+    val largest3Elves = input.lines()
+        .splitOn { it.isEmpty() }
+        .map { chunk -> chunk.sumOf { it.toInt() } }
+        .maxN(3)
+        .sum()
 
     println(largest3Elves)
 }
