@@ -5,7 +5,8 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 
 class Day1Test {
-    private val input = InputData.fromString("""
+    private val input = InputData.fromString(
+        """
         1000
         2000
         3000
@@ -20,18 +21,19 @@ class Day1Test {
         9000
 
         10000
-    """.trimIndent())
+    """.trimIndent()
+    )
 
     @Test
-    fun part1Works() {
-        val result = part1(input)
+    fun part1() {
+        val result = Day1.part1(input)
 
         assertThat(result, equalTo(24000))
     }
 
     @Test
-    fun part2Works() {
-        val result = part2(input)
+    fun part2() {
+        val result = Day1.part2(input)
 
         assertThat(result, equalTo(45000))
     }
