@@ -1,7 +1,8 @@
-package cz.judas.jan.advent
+package cz.judas.jan.advent.year2022
 
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
+import cz.judas.jan.advent.InputData
+import org.hamcrest.MatcherAssert
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 
 class Day1Test {
@@ -28,13 +29,13 @@ class Day1Test {
     fun part1() {
         val result = Day1.part1(input)
 
-        assertThat(result, equalTo(24000))
+        MatcherAssert.assertThat(result, Matchers.equalTo(24000))
     }
 
     @Test
     fun part2() {
         val result = Day1.part2(input)
 
-        assertThat(result, equalTo(45000))
+        MatcherAssert.assertThat(result, Matchers.equalTo(45000))
     }
 }

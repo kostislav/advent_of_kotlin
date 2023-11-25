@@ -38,8 +38,8 @@ class InputData(private val source: () -> Reader) {
     }
 
     companion object {
-        fun forDay(day: Int): InputData {
-            val resource = InputData::class.java.getResource("day${day}")!!
+        fun forDay(year: Int, day: Int): InputData {
+            val resource = InputData::class.java.getResource("year${year}/day${day}")!!
             return InputData {
                 resource.openStream()
                     .reader(StandardCharsets.UTF_8)

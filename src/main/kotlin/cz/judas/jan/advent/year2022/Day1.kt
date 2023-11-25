@@ -1,4 +1,8 @@
-package cz.judas.jan.advent
+package cz.judas.jan.advent.year2022
+
+import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.maxN
+import cz.judas.jan.advent.splitOn
 
 
 object Day1 {
@@ -18,4 +22,4 @@ object Day1 {
     }
 }
 
-fun main() = println(Day1.part2(InputData.forDay(1)))
+fun main() = println(Day1.part2(InputData.forDay(2022, 1)))
