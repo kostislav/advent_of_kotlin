@@ -57,6 +57,15 @@ fun String.characters(): List<Char> {
     return toCharArray().toList()
 }
 
+fun String.splitOnOnly(delimiter: String): Pair<String, String> {
+    val parts = split(delimiter)
+    if (parts.size == 2) {
+        return Pair(parts[0], parts[1])
+    } else {
+        throw RuntimeException("Expected a single ${delimiter} delimiter in ${this}")
+    }
+}
+
 fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
     return Pair(transformation(first), transformation(second))
 }
