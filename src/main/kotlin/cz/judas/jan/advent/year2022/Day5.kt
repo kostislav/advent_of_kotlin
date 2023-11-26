@@ -6,7 +6,11 @@ import cz.judas.jan.advent.characters
 import cz.judas.jan.advent.splitOnOnly
 
 object Day5 {
-    fun part1(input: InputData): String {
+    fun part1(input: InputData): String = solve(input, moveAtOnce = false)
+
+    fun part2(input: InputData): String = solve(input, moveAtOnce = true)
+
+    private fun solve(input: InputData, moveAtOnce: Boolean): String {
         val (crates, instructions) = input.lines().splitOnOnly { it.isEmpty() }
         val cratesArray = TwoDimensionalArray.charsFromLines(crates).rotateRight()
         val stacks = (1..cratesArray.numRows step 4)
@@ -23,8 +27,16 @@ object Day5 {
             val fromStack = stacks.getValue(parts[3])
             val toStack = stacks.getValue(parts[5])
 
-            for (i in 1..howMany) {
-                toStack.addLast(fromStack.removeLast())
+            if (moveAtOnce) {
+                val moved = mutableListOf<Char>()
+                for (i in 1..howMany) {
+                    moved += fromStack.removeLast()
+                }
+                toStack += moved.reversed()
+            } else {
+                for (i in 1..howMany) {
+                    toStack.addLast(fromStack.removeLast())
+                }
             }
         }
 
