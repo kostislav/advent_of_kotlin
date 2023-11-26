@@ -14,6 +14,13 @@ object Day4 {
             .size
     }
 
+    fun part2(input: InputData): Int {
+        return input.lines()
+            .map(::parseRanges)
+            .filter { (first, second) -> first.isConnected(second) }
+            .size
+    }
+
     private fun parseRanges(line: String): Pair<Range<Int>, Range<Int>> {
         return line.splitOnOnly(",").map { parseRange(it) }
     }
