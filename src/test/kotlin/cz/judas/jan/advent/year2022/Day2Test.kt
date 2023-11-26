@@ -20,4 +20,11 @@ class Day2Test {
 
         assertThat(result, equalTo(15))
     }
+
+    @Test
+    fun part2() {
+        val result = Day2.part2(input)
+
+        assertThat(result, equalTo(12))
+    }
 }

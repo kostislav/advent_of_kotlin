@@ -1,15 +1,17 @@
 package cz.judas.jan.advent.year2022
 
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.biMapOf
 import cz.judas.jan.advent.cartesianProduct
 
 object Day2 {
+    private val elfShapeNames = mapOf(
+        Shape.ROCK to "A",
+        Shape.PAPER to "B",
+        Shape.SCISSORS to "C",
+    )
+
     fun part1(input: InputData): Int {
-        val elfShapeNames = mapOf(
-            Shape.ROCK to "A",
-            Shape.PAPER to "B",
-            Shape.SCISSORS to "C",
-        )
         val myShapeNames = mapOf(
             Shape.ROCK to "X",
             Shape.PAPER to "Y",
@@ -22,7 +24,23 @@ object Day2 {
             }
 
         return input.lines()
-            .sumOf { lineScore[it]!! }
+            .sumOf(lineScore::getValue)
+    }
+
+    fun part2(input: InputData): Int {
+        val outcomeNames = mapOf(
+            Outcome.LOSS to "X",
+            Outcome.DRAW to "Y",
+            Outcome.WIN to "Z",
+        )
+
+        val lineScore = Shape.entries.cartesianProduct(Outcome.entries)
+            .associate { (elfShape, outcome) ->
+                "${elfShapeNames[elfShape]} ${outcomeNames[outcome]}" to elfShape.shapeFor(outcome).points + outcome.points
+            }
+
+        return input.lines()
+            .sumOf(lineScore::getValue)
     }
 
     enum class Shape(val points: Int) {
@@ -38,8 +56,16 @@ object Day2 {
             }
         }
 
+        fun shapeFor(outcome: Outcome): Shape {
+            return when (outcome) {
+                Outcome.WIN -> whatBeatsWhat.inverse().getValue(this)
+                Outcome.DRAW -> this
+                Outcome.LOSS -> whatBeatsWhat.getValue(this)
+            }
+        }
+
         companion object {
-            private val whatBeatsWhat = mapOf(
+            private val whatBeatsWhat = biMapOf(
                 ROCK to SCISSORS,
                 PAPER to ROCK,
                 SCISSORS to PAPER

@@ -1,5 +1,7 @@
 package cz.judas.jan.advent
 
+import com.google.common.collect.BiMap
+import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.Ordering
 import java.io.Reader
 import java.io.StringReader
@@ -33,6 +35,12 @@ fun <T> List<T>.splitOn(predicate: (T) -> Boolean): List<List<T>> {
 
 fun <T1, T2> List<T1>.cartesianProduct(other: List<T2>): List<Pair<T1, T2>> {
     return this.flatMap { item1 -> other.map { item2 -> Pair(item1, item2) } }
+}
+
+fun <K: Any, V: Any> biMapOf(vararg pairs: Pair<K, V>): BiMap<K, V> {
+    return pairs.fold(ImmutableBiMap.builder<K, V>()) { builder, (key, value) ->
+        builder.put(key, value)
+    }.build()
 }
 
 class InputData(private val source: () -> Reader) {
