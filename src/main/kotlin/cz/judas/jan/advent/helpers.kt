@@ -31,6 +31,10 @@ fun <T> List<T>.splitOn(predicate: (T) -> Boolean): List<List<T>> {
     return result
 }
 
+fun <T1, T2> List<T1>.cartesianProduct(other: List<T2>): List<Pair<T1, T2>> {
+    return this.flatMap { item1 -> other.map { item2 -> Pair(item1, item2) } }
+}
+
 class InputData(private val source: () -> Reader) {
     fun lines(): List<String> {
         return source()
