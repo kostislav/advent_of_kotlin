@@ -12,7 +12,6 @@ object Day1 {
             .maxOfOrNull { chunk -> chunk.sumOf { it.toInt() } }!!
     }
 
-
     fun part2(input: InputData): Int {
         return input.lines()
             .splitOn { it.isEmpty() }
@@ -21,5 +20,3 @@ object Day1 {
             .sum()
     }
 }
-
-fun main() = println(Day1.part2(InputData.forDay(2022, 1)))
