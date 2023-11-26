@@ -66,6 +66,19 @@ fun String.splitOnOnly(delimiter: String): Pair<String, String> {
     }
 }
 
+fun <T> List<T>.splitOnOnly(delimiter: (T) -> Boolean): Pair<List<T>, List<T>> {
+    val parts = splitOn(delimiter)
+    if (parts.size == 2) {
+        return Pair(parts[0], parts[1])
+    } else {
+        throw RuntimeException("Could not split")
+    }
+}
+
+fun <T> List<T>.subList(fromIndex: Int): List<T> {
+    return subList(fromIndex, size)
+}
+
 fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
     return Pair(transformation(first), transformation(second))
 }
@@ -92,6 +105,36 @@ fun <T> Iterable<Set<T>>.intersection(): Set<T> {
         iterator.fold(iterator.next(), Set<T>::intersect)
     } else {
         emptySet()
+    }
+}
+
+class TwoDimensionalArray<out T> private constructor(private val items: List<List<T>>) {
+    val numRows get() = items.size
+
+    val numColumns get() = items[0].size
+
+    operator fun get(x: Int, y: Int): T = items[x][y]
+
+    fun rotateRight(): TwoDimensionalArray<T> {
+        return create(numColumns, numRows) { i, j -> get(numRows - 1 - j, i) }
+    }
+
+    fun row(index: Int): List<T> {
+        return items[index]
+    }
+
+    companion object {
+        fun charsFromLines(lines: List<String>): TwoDimensionalArray<Char> {
+            return create(lines.size, lines[0].length) { i, j -> lines[i][j] }
+        }
+
+        fun <T> create(numRows: Int, numColumns: Int, initializer: (Int, Int) -> T): TwoDimensionalArray<T> {
+            return TwoDimensionalArray(List(numRows) { i ->
+                List(numColumns) { j ->
+                    initializer(i, j)
+                }.toList()
+            }.toList())
+        }
     }
 }
 
