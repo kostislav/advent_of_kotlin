@@ -26,8 +26,8 @@ class Day3Test {
 
     @Test
     fun part2() {
-//        val result = Day2.part2(input)
-//
-//        assertThat(result, equalTo(12))
+        val result = Day3.part2(input)
+
+        assertThat(result, equalTo(70))
     }
 }

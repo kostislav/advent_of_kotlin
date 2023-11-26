@@ -7,10 +7,21 @@ object Day3 {
         return input.lines()
             .map { it.splitInHalf() }
             .map {
-                it.map { half -> half.characters().toSet() }
+                it.map { half -> half.setOfChars() }
                     .collect{ firstHalfChars, secondHalfChars -> firstHalfChars.intersect(secondHalfChars).getOnlyElement()}
             }
             .sumOf(::score)
+    }
+
+    fun part2(input: InputData): Int {
+        return input.lines()
+            .chunked(3)
+            .map { group -> group.map { it.setOfChars() }.intersection().getOnlyElement() }
+            .sumOf(::score)
+    }
+
+    private fun String.setOfChars(): Set<Char> {
+        return characters().toSet()
     }
 
     private fun score(c: Char): Int {

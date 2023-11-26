@@ -38,7 +38,7 @@ fun <T1, T2> List<T1>.cartesianProduct(other: List<T2>): List<Pair<T1, T2>> {
     return this.flatMap { item1 -> other.map { item2 -> Pair(item1, item2) } }
 }
 
-fun <K: Any, V: Any> biMapOf(vararg pairs: Pair<K, V>): BiMap<K, V> {
+fun <K : Any, V : Any> biMapOf(vararg pairs: Pair<K, V>): BiMap<K, V> {
     return pairs.fold(ImmutableBiMap.builder<K, V>()) { builder, (key, value) ->
         builder.put(key, value)
     }.build()
@@ -67,6 +67,23 @@ fun <I1, I2, O> Pair<I1, I2>.collect(merger: (I1, I2) -> O): O {
 
 fun <T> Iterable<T>.getOnlyElement(): T {
     return Iterables.getOnlyElement(this)
+}
+
+fun <I, O> Iterator<I>.fold(initial: O, operation: (O, I) -> O): O {
+    var current = initial
+    while (hasNext()) {
+        current = operation(current, next())
+    }
+    return current
+}
+
+fun <T> Iterable<Set<T>>.intersection(): Set<T> {
+    val iterator = iterator()
+    return if (iterator.hasNext()) {
+        iterator.fold(iterator.next(), Set<T>::intersect)
+    } else {
+        emptySet()
+    }
 }
 
 class InputData(private val source: () -> Reader) {
