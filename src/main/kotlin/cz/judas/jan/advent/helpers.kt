@@ -79,6 +79,22 @@ fun <T> List<T>.subList(fromIndex: Int): List<T> {
     return subList(fromIndex, size)
 }
 
+fun <T> List<T>.trimEnd(whatToRemove: (T) -> Boolean): List<T> {
+    val result = toMutableList()
+    for (i in size downTo 1) {
+        if (whatToRemove(result[i - 1])) {
+            result.removeLast()
+        } else {
+            break
+        }
+    }
+    return result
+}
+
+fun <T> List<T>.trimEnd(whatToRemove: T): List<T> {
+    return trimEnd{ it == whatToRemove }
+}
+
 fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
     return Pair(transformation(first), transformation(second))
 }

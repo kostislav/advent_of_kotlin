@@ -1,9 +1,6 @@
 package cz.judas.jan.advent.year2022
 
-import cz.judas.jan.advent.InputData
-import cz.judas.jan.advent.TwoDimensionalArray
-import cz.judas.jan.advent.characters
-import cz.judas.jan.advent.splitOnOnly
+import cz.judas.jan.advent.*
 
 object Day5 {
     fun part1(input: InputData): String = solve(input, moveAtOnce = false)
@@ -15,9 +12,9 @@ object Day5 {
         val cratesArray = TwoDimensionalArray.charsFromLines(crates).rotateRight()
         val stacks = (1..cratesArray.numRows step 4)
             .associate {
-                val line = cratesArray.row(it).joinToString("")
-                val name = line.substring(0, 1)
-                val stack = ArrayDeque(line.substring(1).trimEnd().characters())
+                val line = cratesArray.row(it)
+                val name = line[0].toString()
+                val stack = ArrayDeque(line.subList(1).trimEnd(' '))
                 name to stack
             }
 
