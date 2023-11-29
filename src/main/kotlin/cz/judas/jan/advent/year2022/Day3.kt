@@ -1,6 +1,12 @@
 package cz.judas.jan.advent.year2022
 
-import cz.judas.jan.advent.*
+import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.characters
+import cz.judas.jan.advent.collect
+import cz.judas.jan.advent.getOnlyElement
+import cz.judas.jan.advent.intersection
+import cz.judas.jan.advent.map
+import cz.judas.jan.advent.splitInHalf
 
 object Day3 {
     fun part1(input: InputData): Int {

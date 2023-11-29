@@ -1,6 +1,10 @@
 package cz.judas.jan.advent.year2022
 
-import cz.judas.jan.advent.*
+import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.TwoDimensionalArray
+import cz.judas.jan.advent.splitOnOnly
+import cz.judas.jan.advent.subList
+import cz.judas.jan.advent.trimEnd
 
 object Day5 {
     fun part1(input: InputData): String = solve(input, moveAtOnce = false)
