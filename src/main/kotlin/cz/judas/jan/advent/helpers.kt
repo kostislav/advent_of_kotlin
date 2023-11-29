@@ -6,7 +6,14 @@ import com.google.common.collect.Iterables
 import com.google.common.collect.Ordering
 import java.io.Reader
 import java.io.StringReader
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets
+import kotlin.io.path.Path
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 fun <T : Comparable<T>> List<T>.maxN(howMany: Int): List<T> {
     return Ordering.natural<T>().greatestOf(this, howMany)
@@ -92,7 +99,7 @@ fun <T> List<T>.trimEnd(whatToRemove: (T) -> Boolean): List<T> {
 }
 
 fun <T> List<T>.trimEnd(whatToRemove: T): List<T> {
-    return trimEnd{ it == whatToRemove }
+    return trimEnd { it == whatToRemove }
 }
 
 fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
@@ -160,17 +167,42 @@ class InputData(private val source: () -> Reader) {
             .useLines { it.toList() }
     }
 
-    companion object {
-        fun forDay(year: Int, day: Int): InputData {
-            val resource = InputData::class.java.getResource("year${year}/day${day}")!!
-            return InputData {
-                resource.openStream()
-                    .reader(StandardCharsets.UTF_8)
-            }
-        }
+    fun asString(): String {
+        return source().readText()
+    }
 
+    companion object {
         fun fromString(contents: String): InputData {
             return InputData { StringReader(contents) }
         }
+    }
+}
+
+class InputFetcher {
+    fun get(year: Int, day: Int): InputData {
+        val relativeResourcePath = "year${year}/day${day}"
+        val resource = InputData::class.java.getResource(relativeResourcePath)
+        return if (resource === null) {
+            val data = fetch(year, day)
+            Path("src/main/resources/cz/judas/jan/advent/${relativeResourcePath}").writeText(data, StandardCharsets.UTF_8)
+            InputData { StringReader(data) }
+        } else {
+            InputData {
+                resource.openStream().reader(StandardCharsets.UTF_8)
+            }
+        }
+    }
+
+    private fun fetch(year: Int, day: Int): String {
+        val session = Path(".session").readText()
+        val request = HttpRequest.newBuilder()
+            .uri(URI("https://adventofcode.com/${year}/day/${day}/input"))
+            .header("Cookie", "session=${session}")
+            .GET()
+            .build()
+
+        val httpClient = HttpClient.newHttpClient()
+
+        return httpClient.send(request, BodyHandlers.ofString()).body()
     }
 }
