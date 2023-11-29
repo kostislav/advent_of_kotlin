@@ -203,6 +203,6 @@ class InputFetcher {
 
         val httpClient = HttpClient.newHttpClient()
 
-        return httpClient.send(request, BodyHandlers.ofString()).body()
+        return httpClient.send(request, BodyHandlers.ofString()).body().trimEnd('\n')
     }
 }
