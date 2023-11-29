@@ -7,4 +7,4 @@ fun run(year: Int, day: Int, part: Int): Any {
     return partMethod.invoke(dayInstance, InputData.forDay(year, day))
 }
 
-fun main() = println(run(year = 2022, day = 5, part = 2))
+fun main() = println(run(year = 2015, day = 25, part = 1))
