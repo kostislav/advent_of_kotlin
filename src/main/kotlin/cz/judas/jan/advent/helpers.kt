@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Ordering
+import org.apache.http.HttpMessage
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
@@ -204,7 +205,7 @@ class AdventOfCodeApi {
 
     fun getPuzzleInput(year: Int, day: Int): String {
         val request = HttpGet("https://adventofcode.com/${year}/day/${day}/input").apply {
-            setHeader("Cookie", "session=${getSession()}")
+            addHeaders()
         }
 
         return httpClient.execute(request).use { it.entity.content.reader().readText().trimEnd('\n') }
@@ -212,7 +213,7 @@ class AdventOfCodeApi {
 
     fun submitAnswer(year: Int, day: Int, part: Int, answer: Any) {
         val request = HttpPost("https://adventofcode.com/${year}/day/${day}/answer").apply {
-            setHeader("Cookie", "session=${getSession()}")
+            addHeaders()
             entity = UrlEncodedFormEntity(listOf(
                 BasicNameValuePair("level", part.toString()),
                 BasicNameValuePair("answer", answer.toString()),
@@ -220,6 +221,11 @@ class AdventOfCodeApi {
         }
 
         httpClient.execute(request).close()
+    }
+
+    private fun HttpMessage.addHeaders() {
+        setHeader("Cookie", "session=${getSession()}")
+        setHeader("User-Agent", "https://github.com/kostislav/advent_of_kotlin by snugar.i@gmail.com")
     }
 
     private fun getSession() = Path(".session").readText()
