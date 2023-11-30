@@ -4,12 +4,13 @@ import com.google.common.collect.BiMap
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Ordering
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.message.BasicNameValuePair
 import java.io.Reader
 import java.io.StringReader
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets
 import kotlin.io.path.Path
 import kotlin.io.path.readText
@@ -194,15 +195,34 @@ class InputFetcher {
     }
 
     private fun fetch(year: Int, day: Int): String {
-        val session = Path(".session").readText()
-        val request = HttpRequest.newBuilder()
-            .uri(URI("https://adventofcode.com/${year}/day/${day}/input"))
-            .header("Cookie", "session=${session}")
-            .GET()
-            .build()
-
-        val httpClient = HttpClient.newHttpClient()
-
-        return httpClient.send(request, BodyHandlers.ofString()).body().trimEnd('\n')
+        return AdventOfCodeApi().getPuzzleInput(year, day)
     }
 }
+
+class AdventOfCodeApi {
+    private val httpClient = HttpClients.createDefault()
+
+    fun getPuzzleInput(year: Int, day: Int): String {
+        val request = HttpGet("https://adventofcode.com/${year}/day/${day}/input").apply {
+            setHeader("Cookie", "session=${getSession()}")
+        }
+
+        return httpClient.execute(request).use { it.entity.content.reader().readText().trimEnd('\n') }
+    }
+
+    fun submitAnswer(year: Int, day: Int, part: Int, answer: Any) {
+        val request = HttpPost("https://adventofcode.com/${year}/day/${day}/answer").apply {
+            setHeader("Cookie", "session=${getSession()}")
+            entity = UrlEncodedFormEntity(listOf(
+                BasicNameValuePair("level", part.toString()),
+                BasicNameValuePair("answer", answer.toString()),
+            ))
+        }
+
+        httpClient.execute(request).close()
+    }
+
+    private fun getSession() = Path(".session").readText()
+}
+
+data class Vector2d(val x: Int, val y: Int)
