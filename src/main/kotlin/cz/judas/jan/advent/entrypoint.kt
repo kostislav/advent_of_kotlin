@@ -1,15 +1,27 @@
 package cz.judas.jan.advent
 
-fun run(year: Int, day: Int, part: Int, submit: Boolean): Any {
+data class PuzzleResult(val answer: Any, val computationTime: Long)
+
+fun run(year: Int, day: Int, part: Int, submit: Boolean): PuzzleResult {
     val dayClass = Class.forName("cz.judas.jan.advent.year${year}.Day${day}")
     val partMethod = dayClass.getMethod("part${part}", InputData::class.java)
     val dayInstance = dayClass.getField("INSTANCE").get(null)
     val inputFetcher = InputFetcher()
+    val startTime = System.currentTimeMillis()
     val answer = partMethod.invoke(dayInstance, inputFetcher.get(year, day))
+    val endTime = System.currentTimeMillis()
     if (submit) {
         AdventOfCodeApi().submitAnswer(year, day, part, answer)
     }
-    return answer
+    return PuzzleResult(answer, endTime - startTime)
 }
 
-fun main() = println(run(year = 2023, day = 1, part = 2, submit = false))
+fun main() {
+    val result = run(year = 2023, day = 1, part = 2, submit = false)
+    println()
+    println()
+    println(result.answer)
+    println()
+    println()
+    println("Took ${result.computationTime} ms")
+}
