@@ -12,4 +12,4 @@ fun run(year: Int, day: Int, part: Int, submit: Boolean): Any {
     return answer
 }
 
-fun main() = println(run(year = 2016, day = 2, part = 1, submit = true))
+fun main() = println(run(year = 2023, day = 1, part = 2, submit = false))

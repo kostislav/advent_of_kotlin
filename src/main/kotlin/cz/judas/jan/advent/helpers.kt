@@ -13,6 +13,7 @@ import org.apache.http.message.BasicNameValuePair
 import java.io.Reader
 import java.io.StringReader
 import java.nio.charset.StandardCharsets
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -104,6 +105,10 @@ fun <T> List<T>.trimEnd(whatToRemove: T): List<T> {
     return trimEnd { it == whatToRemove }
 }
 
+fun <K : Comparable<K>, V> List<Pair<K, V>>.toSortedMap(): SortedMap<K, V> {
+    return toMap().toSortedMap()
+}
+
 fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
     return Pair(transformation(first), transformation(second))
 }
@@ -131,6 +136,14 @@ fun <T> Iterable<Set<T>>.intersection(): Set<T> {
     } else {
         emptySet()
     }
+}
+
+fun <K, V> SortedMap<K, V>.firstValue(): V {
+    return getValue(firstKey())
+}
+
+fun <K, V> SortedMap<K, V>.lastValue(): V {
+    return getValue(lastKey())
 }
 
 class TwoDimensionalArray<out T> private constructor(private val items: List<List<T>>) {
@@ -186,7 +199,10 @@ class InputFetcher {
         val resource = InputData::class.java.getResource(relativeResourcePath)
         return if (resource === null) {
             val data = fetch(year, day)
-            Path("src/main/resources/cz/judas/jan/advent/${relativeResourcePath}").writeText(data, StandardCharsets.UTF_8)
+            Path("src/main/resources/cz/judas/jan/advent/${relativeResourcePath}").writeText(
+                data,
+                StandardCharsets.UTF_8
+            )
             InputData { StringReader(data) }
         } else {
             InputData {
@@ -214,10 +230,12 @@ class AdventOfCodeApi {
     fun submitAnswer(year: Int, day: Int, part: Int, answer: Any) {
         val request = HttpPost("https://adventofcode.com/${year}/day/${day}/answer").apply {
             addHeaders()
-            entity = UrlEncodedFormEntity(listOf(
-                BasicNameValuePair("level", part.toString()),
-                BasicNameValuePair("answer", answer.toString()),
-            ))
+            entity = UrlEncodedFormEntity(
+                listOf(
+                    BasicNameValuePair("level", part.toString()),
+                    BasicNameValuePair("answer", answer.toString()),
+                )
+            )
         }
 
         httpClient.execute(request).close()
@@ -232,3 +250,18 @@ class AdventOfCodeApi {
 }
 
 data class Vector2d(val x: Int, val y: Int)
+
+enum class Digit {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT,
+    NINE;
+
+    val value: Int get() = ordinal
+}
