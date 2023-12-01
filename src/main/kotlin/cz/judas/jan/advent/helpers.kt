@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Ordering
+import org.ahocorasick.trie.Trie
 import org.apache.http.HttpMessage
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpGet
@@ -76,6 +77,19 @@ fun String.splitOnOnly(delimiter: String): Pair<String, String> {
     }
 }
 
+fun String.pickByIndex(vararg indexes: Int): List<Char> {
+    return indexes.map { get((it + length) % length) }
+}
+
+fun String.findAll(items: Set<String>, overlapping: Boolean): List<Pair<String, Int>> {
+    val builder = Trie.builder()
+    if (!overlapping) {
+        builder.ignoreOverlaps()
+    }
+    val trie = items.fold(builder, Trie.TrieBuilder::addKeyword).build()
+    return trie.parseText(this).map { emit -> Pair(emit.keyword, emit.start) }
+}
+
 fun <T> List<T>.splitOnOnly(delimiter: (T) -> Boolean): Pair<List<T>, List<T>> {
     val parts = splitOn(delimiter)
     if (parts.size == 2) {
@@ -103,6 +117,10 @@ fun <T> List<T>.trimEnd(whatToRemove: (T) -> Boolean): List<T> {
 
 fun <T> List<T>.trimEnd(whatToRemove: T): List<T> {
     return trimEnd { it == whatToRemove }
+}
+
+fun <T> List<T>.pickByIndex(vararg indexes: Int): List<T> {
+    return indexes.map { get((it + size) % size) }
 }
 
 fun <K : Comparable<K>, V> List<Pair<K, V>>.toSortedMap(): SortedMap<K, V> {
