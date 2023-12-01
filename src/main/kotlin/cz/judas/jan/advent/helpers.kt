@@ -1,8 +1,10 @@
 package cz.judas.jan.advent
 
 import com.google.common.collect.BiMap
+import com.google.common.collect.HashMultiset
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.Iterables
+import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
 import org.ahocorasick.trie.Trie
 import org.apache.http.HttpMessage
@@ -162,6 +164,18 @@ fun <K, V> SortedMap<K, V>.firstValue(): V {
 
 fun <K, V> SortedMap<K, V>.lastValue(): V {
     return getValue(lastKey())
+}
+
+fun <T> mutableMultisetOf(): HashMultiset<T> {
+    return HashMultiset.create()
+}
+
+operator fun <T> Multiset<T>.plusAssign(item: T) {
+    add(item)
+}
+
+operator fun <T> Multiset<T>.minusAssign(item: T) {
+    remove(item)
 }
 
 class TwoDimensionalArray<out T> private constructor(private val items: List<List<T>>) {
