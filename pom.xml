@@ -35,6 +35,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
@@ -51,6 +57,8 @@
             <artifactId>ahocorasick</artifactId>
             <version>${ahocorasick.version}</version>
         </dependency>
+
+
 
 
 

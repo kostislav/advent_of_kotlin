@@ -27,10 +27,6 @@ fun <T : Comparable<T>> List<T>.maxN(howMany: Int): List<T> {
     return Ordering.natural<T>().greatestOf(this, howMany)
 }
 
-fun List<Int>.product(): Int {
-    return fold(1) { acc, value -> acc * value }
-}
-
 fun <T> List<T>.splitOn(predicate: (T) -> Boolean): List<List<T>> {
     val result = mutableListOf<List<T>>()
     val current = mutableListOf<T>()
@@ -176,6 +172,10 @@ fun <T> Iterable<Set<T>>.intersection(): Set<T> {
     } else {
         emptySet()
     }
+}
+
+fun Iterable<Int>.product(): Int {
+    return fold(1) { acc, value -> acc * value }
 }
 
 fun <K, V> SortedMap<K, V>.firstValue(): V {
