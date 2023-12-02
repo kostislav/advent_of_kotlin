@@ -41,6 +41,22 @@ class RegexParserTest {
         assertThat(parsed, equalTo(WithEnum("ee", ExampleEnum.ONE)))
     }
 
+    @Test
+    fun parsesRealInput() {
+        val input =
+            "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian"
+
+        val parsed = parserFor<Blueprint>().parse(input)
+
+        assertThat(parsed, equalTo(
+            Blueprint(1, listOf(
+            Blueprint.Robot("ore", listOf(Blueprint.Robot.Cost(4, "ore"))),
+            Blueprint.Robot("clay", listOf(Blueprint.Robot.Cost(2, "ore"))),
+            Blueprint.Robot("obsidian", listOf(Blueprint.Robot.Cost(3, "ore"), Blueprint.Robot.Cost(14, "clay"))),
+            Blueprint.Robot("geode", listOf(Blueprint.Robot.Cost(2, "ore"), Blueprint.Robot.Cost(7, "obsidian"))),
+        ))))
+    }
+
     @Pattern("([a-z]+) is ([a-z]+)")
     data class Simple(val first: String, val second: String)
 
@@ -56,5 +72,23 @@ class RegexParserTest {
     @Suppress("unused")
     enum class ExampleEnum {
         ONE, TWO
+    }
+
+    @Pattern("Blueprint (\\d+): (.+)")
+    data class Blueprint(
+        val number: Int,
+        val robots: @SplitOn(". ") List<Robot>
+    ) {
+        @Pattern("Each ([a-z]+) robot costs (.+)")
+        data class Robot(
+            val producedMaterial: String,
+            val cost: @SplitOn(" and ") List<Cost>
+        ) {
+            @Pattern("(\\d+) (.+)")
+            data class Cost(
+                val amount: Int,
+                val material: String
+            )
+        }
     }
 }
