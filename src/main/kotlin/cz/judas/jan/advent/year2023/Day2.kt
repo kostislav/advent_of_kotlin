@@ -3,12 +3,15 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
-import cz.judas.jan.advent.parseAs
+import cz.judas.jan.advent.parse
+import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.product
 import cz.judas.jan.advent.toMap
 import cz.judas.jan.advent.toMultiMap
 
 object Day2 {
+    private val parser = parserFor<Game>()
+
     fun part1(input: InputData): Int {
         val maxCubes = mapOf(
             Color.RED to 12,
@@ -18,7 +21,7 @@ object Day2 {
 
         return input.lines()
             .sumOf { line ->
-                val game = line.parseAs<Game>()
+                val game = line.parse(parser)
                 val isPossible = game.sets
                     .flatten()
                     .all { reveal -> reveal.number <= maxCubes.getValue(reveal.color) }
@@ -29,8 +32,9 @@ object Day2 {
     fun part2(input: InputData): Int {
         return input.lines()
             .sumOf { line ->
-                val game = line.parseAs<Game>()
-                game.sets.flatten()
+                val game = line.parse(parser)
+                game.sets
+                    .flatten()
                     .map { reveal -> reveal.color to reveal.number }
                     .toMultiMap()
                     .toMap { numbers -> numbers.max() }

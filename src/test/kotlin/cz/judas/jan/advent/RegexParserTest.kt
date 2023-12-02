@@ -9,7 +9,7 @@ class RegexParserTest {
     fun parsesSimpleDataClass() {
         val input = "aa is bb"
 
-        val parsed = input.parseAs<Simple>()
+        val parsed = parserFor<Simple>().parse(input)
 
         assertThat(parsed, equalTo(Simple("aa", "bb")))
     }
@@ -18,7 +18,7 @@ class RegexParserTest {
     fun parsesIntField() {
         val input = "cc is 654"
 
-        val parsed = input.parseAs<WithInt>()
+        val parsed = parserFor<WithInt>().parse(input)
 
         assertThat(parsed, equalTo(WithInt("cc", 654)))
     }
@@ -27,7 +27,7 @@ class RegexParserTest {
     fun parsesListField() {
         val input = "dd is a list with 1, 2, 3, 4"
 
-        val parsed = input.parseAs<WithList>()
+        val parsed = parserFor<WithList>().parse(input)
 
         assertThat(parsed, equalTo(WithList("dd", listOf(1, 2, 3, 4))))
     }
@@ -36,7 +36,7 @@ class RegexParserTest {
     fun parsesEnumField() {
         val input = "ee is a one"
 
-        val parsed = input.parseAs<WithEnum>()
+        val parsed = parserFor<WithEnum>().parse(input)
 
         assertThat(parsed, equalTo(WithEnum("ee", ExampleEnum.ONE)))
     }
@@ -53,6 +53,7 @@ class RegexParserTest {
     @Pattern("([a-z]+) is a ([a-z]+)")
     data class WithEnum(val first: String, val second: ExampleEnum)
 
+    @Suppress("unused")
     enum class ExampleEnum {
         ONE, TWO
     }
