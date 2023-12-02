@@ -85,13 +85,25 @@ fun String.pickByIndex(vararg indexes: Int): List<Char> {
     return indexes.map { get((it + length) % length) }
 }
 
-fun String.findAll(items: Set<String>, overlapping: Boolean): List<Pair<String, Int>> {
-    val builder = Trie.builder()
-    if (!overlapping) {
-        builder.ignoreOverlaps()
+class StringFinder(private val trie: Trie) {
+    fun findAll(input: String): List<Pair<String, Int>> {
+        return trie.parseText(input).map { emit -> Pair(emit.keyword, emit.start) }
     }
-    val trie = items.fold(builder, Trie.TrieBuilder::addKeyword).build()
-    return trie.parseText(this).map { emit -> Pair(emit.keyword, emit.start) }
+
+    companion object {
+        fun forStrings(items: Set<String>, overlapping: Boolean): StringFinder {
+            val builder = Trie.builder()
+            if (!overlapping) {
+                builder.ignoreOverlaps()
+            }
+            val trie = items.fold(builder, Trie.TrieBuilder::addKeyword).build()
+            return StringFinder(trie)
+        }
+    }
+}
+
+fun String.findAll(finder: StringFinder): List<Pair<String, Int>> {
+    return finder.findAll(this)
 }
 
 fun <T> List<T>.splitOnOnly(delimiter: (T) -> Boolean): Pair<List<T>, List<T>> {
