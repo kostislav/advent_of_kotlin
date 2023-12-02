@@ -44,7 +44,7 @@ class RegexParserTest {
     @Test
     fun parsesRealInput() {
         val input =
-            "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian"
+            "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian."
 
         val parsed = parserFor<Blueprint>().parse(input)
 
@@ -55,6 +55,15 @@ class RegexParserTest {
             Blueprint.Robot("obsidian", listOf(Blueprint.Robot.Cost(3, "ore"), Blueprint.Robot.Cost(14, "clay"))),
             Blueprint.Robot("geode", listOf(Blueprint.Robot.Cost(2, "ore"), Blueprint.Robot.Cost(7, "obsidian"))),
         ))))
+    }
+
+    @Test
+    fun canSplitOnMultipleDelimiters() {
+        val input = "f has ab, cd and ef"
+
+        val parsed = parserFor<WithMultipleDelimiterList>().parse(input)
+
+        assertThat(parsed, equalTo(WithMultipleDelimiterList("f", listOf("ab", "cd", "ef"))))
     }
 
     @Pattern("([a-z]+) is ([a-z]+)")
@@ -77,7 +86,7 @@ class RegexParserTest {
     @Pattern("Blueprint (\\d+): (.+)")
     data class Blueprint(
         val number: Int,
-        val robots: @SplitOn(". ") List<Robot>
+        val robots: List<@Pattern("(.+?)\\. ?") Robot>
     ) {
         @Pattern("Each ([a-z]+) robot costs (.+)")
         data class Robot(
@@ -91,4 +100,10 @@ class RegexParserTest {
             )
         }
     }
+
+    @Pattern("([a-z]+) has (.+)")
+    data class WithMultipleDelimiterList(
+        val first: String,
+        val second: @SplitOn(", ", " and ") List<String>
+    )
 }
