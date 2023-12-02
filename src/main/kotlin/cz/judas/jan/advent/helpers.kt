@@ -1,9 +1,11 @@
 package cz.judas.jan.advent
 
 import com.google.common.collect.BiMap
+import com.google.common.collect.HashMultimap
 import com.google.common.collect.HashMultiset
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.Iterables
+import com.google.common.collect.Multimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
 import org.ahocorasick.trie.Trie
@@ -23,6 +25,10 @@ import kotlin.io.path.writeText
 
 fun <T : Comparable<T>> List<T>.maxN(howMany: Int): List<T> {
     return Ordering.natural<T>().greatestOf(this, howMany)
+}
+
+fun List<Int>.product(): Int {
+    return fold(1) { acc, value -> acc * value }
 }
 
 fun <T> List<T>.splitOn(predicate: (T) -> Boolean): List<List<T>> {
@@ -127,6 +133,20 @@ fun <T> List<T>.pickByIndex(vararg indexes: Int): List<T> {
 
 fun <K : Comparable<K>, V> List<Pair<K, V>>.toSortedMap(): SortedMap<K, V> {
     return toMap().toSortedMap()
+}
+
+fun <K : Comparable<K>, V> List<Pair<K, V>>.toMultiMap(): Multimap<K, V> {
+    val result = HashMultimap.create<K, V>()
+    for ((key, value) in this) {
+        result.put(key, value)
+    }
+    return result
+}
+
+fun <K, VI, VO> Multimap<K, VI>.toMap(combiner: (Iterable<VI>) -> VO): Map<K, VO> {
+    return buildMap {
+        asMap().forEach{ (key, values) -> put(key, combiner(values))}
+    }
 }
 
 fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
