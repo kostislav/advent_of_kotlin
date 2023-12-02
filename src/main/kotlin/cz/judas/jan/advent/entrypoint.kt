@@ -7,8 +7,9 @@ fun run(year: Int, day: Int, part: Int, submit: Boolean): PuzzleResult {
     val partMethod = dayClass.getMethod("part${part}", InputData::class.java)
     val dayInstance = dayClass.getField("INSTANCE").get(null)
     val inputFetcher = InputFetcher()
+    val inputData = inputFetcher.get(year, day)
     val startTime = System.currentTimeMillis()
-    val answer = partMethod.invoke(dayInstance, inputFetcher.get(year, day))
+    val answer = partMethod.invoke(dayInstance, inputData)
     val endTime = System.currentTimeMillis()
     if (submit) {
         AdventOfCodeApi().submitAnswer(year, day, part, answer)
@@ -17,7 +18,7 @@ fun run(year: Int, day: Int, part: Int, submit: Boolean): PuzzleResult {
 }
 
 fun main() {
-    val result = run(year = 2023, day = 1, part = 2, submit = false)
+    val result = run(year = 2015, day = 1, part = 2, submit = false)
     println()
     println()
     println(result.answer)
