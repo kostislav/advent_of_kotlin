@@ -32,6 +32,38 @@ fun String.findAll(finder: StringFinder): List<Pair<String, Int>> {
     return finder.findAll(this)
 }
 
+fun <T> String.tokenize(tokenizer: StringTokenizer<T>): Sequence<Token<T>> {
+    return tokenizer.tokenize(this)
+}
+
+class StringTokenizer<T>(
+    private val regex: Regex,
+    private val groupProcessors: List<(String) -> T>
+) {
+    fun tokenize(input: String): Sequence<Token<T>> {
+        return sequence {
+            for (matchResult in regex.findAll(input)) {
+                for (i in groupProcessors.indices) {
+                    val group = matchResult.groups[i + 1]
+                    if (group !== null) {
+                        yield(Token(group.range, groupProcessors[i](group.value)))
+                    }
+                }
+            }
+        }
+    }
+
+    companion object {
+        fun <T> create(patterns: Map<String, (String) -> T>): StringTokenizer<T> {
+            return StringTokenizer(
+                Regex(patterns.keys.map { "(${it})" }.joinToString("|")),
+                patterns.values.toList()
+            )
+        }
+    }
+}
+
+data class Token<T>(val position: IntRange, val content: T)
 
 class StringFinder(private val trie: Trie) {
     fun findAll(input: String): List<Pair<String, Int>> {

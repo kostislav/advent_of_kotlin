@@ -2,6 +2,9 @@ package cz.judas.jan.advent.year2023
 
 import com.google.common.collect.HashMultimap
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.StringTokenizer
+import cz.judas.jan.advent.product
+import cz.judas.jan.advent.tokenize
 import java.util.*
 
 object Day3 {
@@ -32,7 +35,7 @@ object Day3 {
                         .filterIsInstance(BlockContent.Number::class.java)
 
                     if (neighborNumbers.size == 2) {
-                        neighborNumbers[0].value * neighborNumbers[1].value
+                        neighborNumbers.map { it.value }.product()
                     } else {
                         0
                     }
@@ -43,11 +46,18 @@ object Day3 {
     }
 
     private fun buildGraph(input: InputData): UndirectedGraph<SchemaNode> {
+        val tokenizer = StringTokenizer.create(mapOf(
+            "\\d+" to { BlockContent.Number(it.toInt()) },
+            "\\." to { BlockContent.Nothing },
+            "." to { BlockContent.Symbol(it[0]) }
+        ))
+
         val graphBuilder = UndirectedGraph.builder<SchemaNode>()
         var previousLine: NavigableMap<Int, SchemaNode> = TreeMap()
         input.lines().forEachIndexed { i, line ->
             val thisLine: NavigableMap<Int, SchemaNode> = TreeMap()
-            for (token in tokenize(line)) {
+            val tokens = line.tokenize(tokenizer)
+            for (token in tokens) {
                 val node = SchemaNode(i, token.position, token.content)
                 for (neighbor in previousLine.subMap(
                     previousLine.floorKey(token.position.first - 1) ?: 0,
@@ -65,28 +75,6 @@ object Day3 {
         return graphBuilder.build()
     }
 
-    private fun tokenize(line: String): List<Token<BlockContent>> {
-        val result = mutableListOf<Token<BlockContent>>()
-        var j = 0
-        while (j < line.length) {
-            if (line[j] == '.') {
-                result += Token(j..j, BlockContent.Nothing)
-            } else if (line[j] in '0'..'9') {
-                val start = j
-                var number = line[j].code - '0'.code
-                while (j + 1 < line.length && line[j + 1] in '0'..'9') {
-                    number = number * 10 + line[j + 1].code - '0'.code
-                    j += 1
-                }
-                result += Token(start..j, BlockContent.Number(number))
-            } else {
-                result += Token(j..j, BlockContent.Symbol(line[j]))
-            }
-            j += 1
-        }
-        return result
-    }
-
     sealed interface BlockContent {
         data class Number(val value: Int) : BlockContent
 
@@ -94,8 +82,6 @@ object Day3 {
 
         data object Nothing : BlockContent
     }
-
-    data class Token<T>(val position: IntRange, val content: T)
 
     data class SchemaNode(val x: Int, val y: IntRange, val content: BlockContent)
 
