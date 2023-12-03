@@ -153,7 +153,7 @@ fun <K : Comparable<K>, V> List<Pair<K, V>>.toMultiMap(): Multimap<K, V> {
 
 fun <K, VI, VO> Multimap<K, VI>.toMap(combiner: (Iterable<VI>) -> VO): Map<K, VO> {
     return buildMap {
-        asMap().forEach{ (key, values) -> put(key, combiner(values))}
+        asMap().forEach { (key, values) -> put(key, combiner(values)) }
     }
 }
 
@@ -190,6 +190,10 @@ fun Iterable<Int>.product(): Int {
     return fold(1) { acc, value -> acc * value }
 }
 
+fun Iterable<Long>.product(): Long {
+    return fold(1L) { acc, value -> acc * value }
+}
+
 fun <K, V> SortedMap<K, V>.firstValue(): V {
     return getValue(firstKey())
 }
@@ -216,6 +220,14 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
     val numColumns get() = items[0].size
 
     operator fun get(x: Int, y: Int): T = items[x][y]
+
+    fun getOrNull(x: Int, y: Int): T? {
+        return if (x in 0..<numRows && y in 0..<numColumns) {
+            get(x, y)
+        } else {
+            null
+        }
+    }
 
     fun rotateRight(): TwoDimensionalArray<T> {
         return create(numColumns, numRows) { i, j -> get(numRows - 1 - j, i) }
