@@ -54,3 +54,6 @@ enum class Digit {
 
     val value: Int get() = ordinal
 }
+
+@Target(AnnotationTarget.FUNCTION)
+annotation class Answer(val value: String)

@@ -1,5 +1,6 @@
 package cz.judas.jan.advent.year2023
 
+import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOnPattern
@@ -9,6 +10,7 @@ import cz.judas.jan.advent.parserFor
 object Day4 {
     private val parser = parserFor<Card>()
 
+    @Answer("28538")
     fun part1(input: InputData): Int {
         return input.lines()
             .map { it.parse(parser).numMatches() }
@@ -16,6 +18,7 @@ object Day4 {
             .sumOf { 1 shl it - 1 }
     }
 
+    @Answer("9425061")
     fun part2(input: InputData): Int {
         return input.lines()
             .reversed()
