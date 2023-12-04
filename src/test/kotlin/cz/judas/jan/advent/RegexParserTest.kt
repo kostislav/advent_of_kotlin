@@ -66,6 +66,15 @@ class RegexParserTest {
         assertThat(parsed, equalTo(WithMultipleDelimiterList("f", listOf("ab", "cd", "ef"))))
     }
 
+    @Test
+    fun canSplitOnPattern() {
+        val input = "gg is another list with 1  2    3       4"
+
+        val parsed = parserFor<WithPatternDelimitedList>().parse(input)
+
+        assertThat(parsed, equalTo(WithPatternDelimitedList("gg", listOf(1, 2, 3, 4))))
+    }
+
     @Pattern("([a-z]+) is ([a-z]+)")
     data class Simple(val first: String, val second: String)
 
@@ -74,6 +83,9 @@ class RegexParserTest {
 
     @Pattern("([a-z]+) is a list with (.+)")
     data class WithList(val first: String, val second: @SplitOn(", ") List<Int>)
+
+    @Pattern("([a-z]+) is another list with (.+)")
+    data class WithPatternDelimitedList(val first: String, val second: @SplitOnPattern("\\s+") List<Int>)
 
     @Pattern("([a-z]+) is a ([a-z]+)")
     data class WithEnum(val first: String, val second: ExampleEnum)

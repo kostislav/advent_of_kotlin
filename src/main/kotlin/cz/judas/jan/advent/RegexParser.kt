@@ -16,6 +16,9 @@ annotation class Pattern(val pattern: String)
 @Target(AnnotationTarget.TYPE)
 annotation class SplitOn(vararg val delimiters: String)
 
+@Target(AnnotationTarget.TYPE)
+annotation class SplitOnPattern(val delimiterPattern: String)
+
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> parserFor(): Parser<T> {
     return buildParser(typeOf<T>()) as Parser<T>
@@ -35,10 +38,18 @@ fun buildParser(type: KType): Parser<Any> {
                 val itemParser = buildParser(itemType)
                 val splitOnAnnotation = type.getAnnotation(SplitOn::class)
                 if (splitOnAnnotation === null) {
-                    return PatternListParser(
-                        Regex(itemType.getAnnotation(Pattern::class)!!.pattern),
-                        itemParser
-                    )
+                    val splitOnPatternAnnotation = type.getAnnotation(SplitOnPattern::class)
+                    if (splitOnPatternAnnotation === null) {
+                        return PatternListParser(
+                            Regex(itemType.getAnnotation(Pattern::class)!!.pattern),
+                            itemParser
+                        )
+                    } else {
+                        return PatternSplittingListParser(
+                            Regex(splitOnPatternAnnotation.delimiterPattern),
+                            itemParser
+                        )
+                    }
                 } else {
                     val delimiters = splitOnAnnotation.delimiters
                     return SplittingListParser(delimiters, itemParser)
@@ -118,6 +129,15 @@ class SplittingListParser<T>(
 ) : Parser<List<T>> {
     override fun parse(input: String): List<T> {
         return input.split(*delimiters).map(itemParser::parse)
+    }
+}
+
+class PatternSplittingListParser<T>(
+    private val splitPattern: Regex,
+    private val itemParser: Parser<T>
+) : Parser<List<T>> {
+    override fun parse(input: String): List<T> {
+        return input.split(splitPattern).filterNot { it.isEmpty() }.map(itemParser::parse)
     }
 }
 
