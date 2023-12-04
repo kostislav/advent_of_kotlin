@@ -6,33 +6,27 @@ import cz.judas.jan.advent.parse
 import cz.judas.jan.advent.parserFor
 
 object Day4 {
-    fun part1(input: InputData): Int {
-        val parser = parserFor<Card>()
+    private val parser = parserFor<Card>()
 
+    fun part1(input: InputData): Int {
         return input.lines()
-            .map { line ->
-                val card = line.parse(parser)
-                card.numbersIHave.toSet().intersect(card.winningNumbers.toSet())
-            }
-            .filterNot { it.isEmpty() }
-            .sumOf { 1 shl it.size - 1 }
+            .map { it.parse(parser).numMatches() }
+            .filterNot { it == 0 }
+            .sumOf { 1 shl it - 1 }
     }
 
     fun part2(input: InputData): Int {
-        val parser = parserFor<Card>()
-        val matchingNumberCount = mutableMapOf<Int, Int>()
-
-        input.lines()
+        return input.lines()
             .reversed()
-            .forEach { line ->
+            .fold(emptyMap<Int, Int>()) { matchingNumberCount, line ->
                 val card = line.parse(parser)
-                val numMatches = card.numbersIHave.toSet().intersect(card.winningNumbers.toSet()).size
+                val numMatches = card.numMatches()
                 val wonCards = IntRange(card.number + 1, card.number + numMatches)
                     .sumOf { matchingNumberCount[it] ?: 0 }
-                matchingNumberCount[card.number] = wonCards + 1
+                matchingNumberCount + mapOf(card.number to wonCards + 1)
             }
-
-        return matchingNumberCount.values.sum()
+            .values
+            .sum()
     }
 
     @Pattern("Card +(\\d+): (.+) \\| (.+)")
@@ -40,5 +34,7 @@ object Day4 {
         val number: Int,
         val winningNumbers: List<@Pattern("\\d+") Int>,
         val numbersIHave: List<@Pattern("\\d+") Int>,
-    )
+    ) {
+        fun numMatches(): Int = numbersIHave.toSet().intersect(winningNumbers.toSet()).size
+    }
 }
