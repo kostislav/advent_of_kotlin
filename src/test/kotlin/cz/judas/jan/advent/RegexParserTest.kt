@@ -84,9 +84,9 @@ class RegexParserTest {
             3
         """.trimIndent()
 
-        val parsed = parserFor<WithStringList>().parse(input)
+        val parsed = parserFor<WithLongList>().parse(input)
 
-        assertThat(parsed, equalTo(WithStringList("hh", listOf(1, 2, 3))))
+        assertThat(parsed, equalTo(WithLongList("hh", listOf(1L, 2L, 3L))))
     }
 
     @Pattern("([a-z]+) is ([a-z]+)")
@@ -134,8 +134,8 @@ class RegexParserTest {
     )
 
     @Pattern("([a-z]+) is a list with:\n(.+)")
-    data class WithStringList(
+    data class WithLongList(
         val first: String,
-        val second: @SplitOn("\n") List<Int>
+        val second: @SplitOn("\n") List<Long>
     )
 }

@@ -122,7 +122,6 @@ object IntParser : Parser<Int> {
     }
 }
 
-//TODO test
 object LongParser : Parser<Long> {
     override fun parse(input: String): Long {
         return input.toLong()
