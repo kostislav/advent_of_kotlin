@@ -1,5 +1,6 @@
 package cz.judas.jan.advent.year2023
 
+import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.BetterRange
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
@@ -10,6 +11,7 @@ import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.unfold
 
 object Day5 {
+    @Answer("88151870")
     fun part1(input: InputData): Long {
         val parser = parserFor<Part1Almanac>()
         val almanac = parser.parse(input.asString())
@@ -20,6 +22,7 @@ object Day5 {
         }
     }
 
+    @Answer("2008785")
     fun part2(input: InputData): Long {
         val parser = parserFor<Part2Almanac>()
         val almanac = parser.parse(input.asString())

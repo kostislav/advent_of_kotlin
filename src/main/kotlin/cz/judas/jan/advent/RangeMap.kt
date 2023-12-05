@@ -21,20 +21,14 @@ class RangeMap<K : Comparable<K>, V>(
         var current = range.start
         while (current < range.endExclusive) {
             val lower = values.floorEntry(current)
-            if (lower === null || lower.value.first < current) {
+            if (lower === null || lower.value.first < current || current >= lower.value.first) {
                 val nextStart = values.ceilingKey(current) ?: range.endExclusive
                 result += BetterRange(current, nextStart) to defaultValue
                 current = nextStart
             } else {
-                if (current < lower.value.first) {
-                    val nextStart = Ordering.natural<K>().min(lower.value.first, range.endExclusive)
-                    result += BetterRange(current, nextStart) to lower.value.second
-                    current = nextStart
-                } else {
-                    val nextStart = values.ceilingKey(current) ?: range.endExclusive
-                    result += BetterRange(current, nextStart) to defaultValue
-                    current = nextStart
-                }
+                val nextStart = Ordering.natural<K>().min(lower.value.first, range.endExclusive)
+                result += BetterRange(current, nextStart) to lower.value.second
+                current = nextStart
             }
         }
         return result
