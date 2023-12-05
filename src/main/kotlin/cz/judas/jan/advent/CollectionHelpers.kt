@@ -74,8 +74,9 @@ fun <T> List<T>.pickByIndex(vararg indexes: Int): List<T> {
     return indexes.map { get((it + size) % size) }
 }
 
-fun <K : Comparable<K>, V> List<Pair<K, V>>.toSortedMap(): SortedMap<K, V> {
-    return toMap().toSortedMap()
+//TODO rename
+fun <K : Comparable<K>, V> List<Pair<K, V>>.toSortedMap(): NavigableMap<K, V> {
+    return TreeMap(toMap())
 }
 
 fun <K : Comparable<K>, V> List<Pair<K, V>>.toMultiMap(): Multimap<K, V> {

@@ -11,7 +11,7 @@ import kotlin.reflect.typeOf
 // Inspired by https://github.com/LittleLightCz/Rojo
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE)
-annotation class Pattern(val pattern: String)
+annotation class Pattern(val pattern: String, val multiline: Boolean = false)
 
 @Target(AnnotationTarget.TYPE)
 annotation class SplitOn(vararg val delimiters: String)
@@ -32,6 +32,7 @@ fun buildParser(type: KType): Parser<Any> {
     return when (val classifier = type.classifier) {
         String::class -> StringParser
         Int::class -> IntParser
+        Long::class -> LongParser
         is KClass<*> -> {
             if (classifier == List::class) {
                 val itemType = type.arguments[0].type!!
@@ -41,7 +42,7 @@ fun buildParser(type: KType): Parser<Any> {
                     val splitOnPatternAnnotation = type.getAnnotation(SplitOnPattern::class)
                     if (splitOnPatternAnnotation === null) {
                         return PatternListParser(
-                            Regex(itemType.getAnnotation(Pattern::class)!!.pattern),
+                            buildRegex(itemType.getAnnotation(Pattern::class)!!),
                             itemParser
                         )
                     } else {
@@ -60,7 +61,7 @@ fun buildParser(type: KType): Parser<Any> {
             } else {
                 val constructor = classifier.primaryConstructor!!
                 return PatterClassParser(
-                    Regex(classifier.getAnnotation(Pattern::class)!!.pattern),
+                    buildRegex(classifier.getAnnotation(Pattern::class)!!),
                     constructor,
                     constructor.parameters.map { buildParser(it.type) }
                 )
@@ -70,6 +71,13 @@ fun buildParser(type: KType): Parser<Any> {
         else -> throw RuntimeException("Cannot parse into ${type}")
     }
 
+}
+
+//TODO
+private fun buildRegex(pattern: Pattern): Regex {
+//    val options = if (pattern.multiline) setOf(RegexOption.MULTILINE) else emptySet()
+//    return Regex(pattern.pattern, options)
+    return Regex(pattern.pattern)
 }
 
 private fun <T: Any> KAnnotatedElement.getAnnotation(annotationType: KClass<T>): T? {
@@ -112,6 +120,13 @@ object StringParser : Parser<String> {
 object IntParser : Parser<Int> {
     override fun parse(input: String): Int {
         return input.toInt()
+    }
+}
+
+//TODO test
+object LongParser : Parser<Long> {
+    override fun parse(input: String): Long {
+        return input.toLong()
     }
 }
 
