@@ -7,13 +7,14 @@ import cz.judas.jan.advent.RangeMap
 import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.offsetBy
 import cz.judas.jan.advent.parserFor
+import cz.judas.jan.advent.unfold
 
 object Day5 {
     fun part1(input: InputData): Long {
         val parser = parserFor<Part1Almanac>()
         val almanac = parser.parse(input.asString())
 
-        val transformers = almanac.maps.map { it.transformer() }
+        val transformers = transformerChain(almanac.maps)
         return almanac.seeds.minOf { seed ->
             transformers.fold(seed) { value, map -> map[value] }
         }
@@ -23,13 +24,20 @@ object Day5 {
         val parser = parserFor<Part2Almanac>()
         val almanac = parser.parse(input.asString())
 
-        val transformers = almanac.maps.map { it.transformer() }
+        val transformers = transformerChain(almanac.maps)
         val sourceSeedRanges = almanac.seeds.map { it.toRange() }
         return transformers
             .fold(sourceSeedRanges) { ranges, transformer ->
                 ranges.flatMap { transformer[it] }
             }
             .minOf { it.start }
+    }
+
+    private fun transformerChain(maps: List<TransformationMap>): List<Transformer> {
+        val mapsByDestinationType = maps.associateBy { it.destinationType }
+        return unfold(mapsByDestinationType.getValue("location")) { mapsByDestinationType[it.sourceType] }
+            .map { it.transformer() }
+            .reversed()
     }
 
     @Pattern("seeds: (.+?)\n\n(.*)")

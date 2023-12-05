@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
+import cz.judas.jan.advent.year2023.Day5
 import java.util.*
 
 
@@ -153,4 +154,14 @@ operator fun <T> Multiset<T>.plusAssign(item: T) {
 
 operator fun <T> Multiset<T>.minusAssign(item: T) {
     remove(item)
+}
+
+fun <T: Any> unfold(initial: T, next: (T) -> T?): List<T> {
+    val result = mutableListOf<T>()
+    var current: T? = initial
+    while (current !== null) {
+        result += current
+        current = next(current)
+    }
+    return result
 }
