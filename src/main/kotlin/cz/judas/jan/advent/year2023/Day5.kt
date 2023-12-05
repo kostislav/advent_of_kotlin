@@ -4,27 +4,13 @@ import com.google.common.collect.Ordering
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
-import cz.judas.jan.advent.parse
 import cz.judas.jan.advent.parserFor
-import cz.judas.jan.advent.splitOn
 import java.util.*
 
 object Day5 {
     fun part1(input: InputData): Long {
-        val transformationMapParser = parserFor<TransformationMap2>()
-        val transformationRangeParser = parserFor<TransformationRange>()
-        val chunks = input.lines()
-            .splitOn { it.isEmpty() }
-
-        val sourceSeeds = chunks[0][0].parse(parserFor<SeedsPart>()).seeds
-        val transformationMaps = chunks.drop(1)
-            .map { chunk ->
-                val partialMap = chunk[0].parse(transformationMapParser)
-                val ranges = chunk.drop(1).map { it.parse(transformationRangeParser) }
-                TransformationMap(partialMap.sourceType, partialMap.destinationType, ranges)
-            }
-
-        val almanac = Almanac(sourceSeeds, transformationMaps)
+        val parser = parserFor<Part1Almanac>()
+        val almanac = parser.parse(input.asString())
 
         val transformers = almanac.maps.map { it.transformer() }
         return almanac.seeds.minOf { seed ->
@@ -33,20 +19,11 @@ object Day5 {
     }
 
     fun part2(input: InputData): Long {
-        val transformationMapParser = parserFor<TransformationMap2>()
-        val transformationRangeParser = parserFor<TransformationRange>()
-        val chunks = input.lines()
-            .splitOn { it.isEmpty() }
+        val parser = parserFor<Part2Almanac>()
+        val almanac = parser.parse(input.asString())
 
-        val sourceSeedRanges = chunks[0][0].parse(parserFor<SeedRanges>()).seeds.map { it.toRange() }
-        val transformationMaps = chunks.drop(1)
-            .map { chunk ->
-                val partialMap = chunk[0].parse(transformationMapParser)
-                val ranges = chunk.drop(1).map { it.parse(transformationRangeParser) }
-                TransformationMap(partialMap.sourceType, partialMap.destinationType, ranges)
-            }
-
-        val transformers = transformationMaps.map { it.transformer() }
+        val transformers = almanac.maps.map { it.transformer() }
+        val sourceSeedRanges = almanac.seeds.map { it.toRange() }
         return transformers
             .fold(sourceSeedRanges) { ranges, transformer ->
                 ranges.flatMap { transformer[it] }
@@ -54,39 +31,22 @@ object Day5 {
             .minOf { it.start }
     }
 
-    @Pattern("seeds: (.+)")
-    data class SeedsPart(
-        val seeds: @SplitOn(" ") List<Long>
+    @Pattern("seeds: (.+?)\n\n(.*)")
+    data class Part1Almanac(
+        val seeds: @SplitOn(" ") List<Long>,
+        val maps: @SplitOn("\n\n") List<TransformationMap>
     )
 
-    @Pattern("seeds: (.+)")
-    data class SeedRanges(
-        val seeds: List<@Pattern("\\d+ \\d+") SeedRange>
-    )
-
-    @Pattern("(\\d+) (\\d+)")
-    data class SeedRange(val start: Long, val length: Long) {
-        fun toRange(): BetterRange<Long> = BetterRange(start, start + length)
-    }
-
-    @Pattern("(\\w+)-to-(\\w+) map:") // TODO
-    data class TransformationMap2(
-        val sourceType: String,
-        val destinationType: String,
-//        val ranges: List<TransformationRange>
-    )
-
+    @Pattern("(\\w+)-to-(\\w+) map:\n(.*)")
     data class TransformationMap(
         val sourceType: String,
         val destinationType: String,
-        val ranges: List<TransformationRange>
+        val ranges: @SplitOn("\n") List<TransformationRange>
     ) {
         fun transformer(): Transformer {
             return Transformer(
                 ranges
-                    .map {
-                        BetterRange(it.sourceStart, it.sourceStart + it.length) to it.destinationStart - it.sourceStart
-                    }
+                    .map { it.toTransformerPair() }
                     .let { RangeMap.fromPairs(it, 0L) }
             )
         }
@@ -97,13 +57,22 @@ object Day5 {
         val destinationStart: Long,
         val sourceStart: Long,
         val length: Long
-    )
+    ) {
+        fun toTransformerPair(): Pair<BetterRange<Long>, Long> {
+            return BetterRange(sourceStart, sourceStart + length) to destinationStart - sourceStart
+        }
+    }
 
-    @Pattern("seeds: (.+?)\n\n(.*)", multiline = true)
-    data class Almanac(
-        val seeds: @SplitOn(" ") List<Long>,
+    @Pattern("seeds: (.+?)\n\n(.*)")
+    data class Part2Almanac(
+        val seeds: List<@Pattern("\\d+ \\d+") SeedRange>,
         val maps: @SplitOn("\n\n") List<TransformationMap>
     )
+
+    @Pattern("(\\d+) (\\d+)")
+    data class SeedRange(val start: Long, val length: Long) {
+        fun toRange(): BetterRange<Long> = BetterRange(start, start + length)
+    }
 
     class Transformer(
         private val mapping: RangeMap<Long, Long>
@@ -114,11 +83,15 @@ object Day5 {
 
         operator fun get(range: BetterRange<Long>): List<BetterRange<Long>> {
             return mapping.entriesFor(range)
-                .map { BetterRange(it.first.start + it.second, it.first.endExclusive + it.second) }
+                .map { it.first.offsetBy(it.second) }
         }
     }
 
     data class BetterRange<T>(val start: T, val endExclusive: T)
+
+    fun BetterRange<Long>.offsetBy(delta: Long): BetterRange<Long> {
+        return BetterRange(start + delta, endExclusive + delta)
+    }
 
     class RangeMap<K : Comparable<K>, V>(
         private val values: NavigableMap<K, Pair<K, V>>,

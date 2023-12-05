@@ -10,8 +10,10 @@ import kotlin.reflect.typeOf
 
 // Inspired by https://github.com/LittleLightCz/Rojo
 
+// multiline parameter with default value does not work:
+// https://youtrack.jetbrains.com/issue/KT-39369/KotlinReflectionInternalError-Method-is-not-supported-for-default-value-in-type-annotation
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE)
-annotation class Pattern(val pattern: String, val multiline: Boolean = false)
+annotation class Pattern(val pattern: String)
 
 @Target(AnnotationTarget.TYPE)
 annotation class SplitOn(vararg val delimiters: String)
@@ -73,11 +75,8 @@ fun buildParser(type: KType): Parser<Any> {
 
 }
 
-//TODO
 private fun buildRegex(pattern: Pattern): Regex {
-//    val options = if (pattern.multiline) setOf(RegexOption.MULTILINE) else emptySet()
-//    return Regex(pattern.pattern, options)
-    return Regex(pattern.pattern)
+    return Regex(pattern.pattern, setOf(RegexOption.DOT_MATCHES_ALL))
 }
 
 private fun <T: Any> KAnnotatedElement.getAnnotation(annotationType: KClass<T>): T? {

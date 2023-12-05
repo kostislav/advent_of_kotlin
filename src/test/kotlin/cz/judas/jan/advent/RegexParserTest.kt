@@ -75,6 +75,20 @@ class RegexParserTest {
         assertThat(parsed, equalTo(WithPatternDelimitedList("gg", listOf(1, 2, 3, 4))))
     }
 
+    @Test
+    fun parsesMultiline() {
+        val input = """
+            hh is a list with:
+            1
+            2
+            3
+        """.trimIndent()
+
+        val parsed = parserFor<WithStringList>().parse(input)
+
+        assertThat(parsed, equalTo(WithStringList("hh", listOf(1, 2, 3))))
+    }
+
     @Pattern("([a-z]+) is ([a-z]+)")
     data class Simple(val first: String, val second: String)
 
@@ -117,5 +131,11 @@ class RegexParserTest {
     data class WithMultipleDelimiterList(
         val first: String,
         val second: @SplitOn(", ", " and ") List<String>
+    )
+
+    @Pattern("([a-z]+) is a list with:\n(.+)")
+    data class WithStringList(
+        val first: String,
+        val second: @SplitOn("\n") List<Int>
     )
 }
