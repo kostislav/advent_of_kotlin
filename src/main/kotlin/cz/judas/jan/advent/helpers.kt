@@ -1,24 +1,24 @@
 package cz.judas.jan.advent
 
+import com.google.common.collect.BoundType
+import com.google.common.collect.Range
 import kotlin.math.ceil
 import kotlin.math.floor
 
-fun Double.nextSmallerInt(): Int {
-    val floor = floor(this)
-    return if (floor == this) {
-        floor - 1
-    } else {
-        floor
-    }.toInt()
+
+fun Range<Double>.enclosedLongRange(): Range<Long> {
+    val ceilStart = ceil(lowerEndpoint())
+    val floorEnd = floor(upperEndpoint())
+
+    return Range.closed(
+        ceilStart.toLong() + if (hasLowerBound() && lowerBoundType() == BoundType.OPEN && ceilStart == lowerEndpoint()) 1 else 0,
+        floorEnd.toLong() - if (hasUpperBound() && upperBoundType() == BoundType.OPEN && floorEnd == upperEndpoint()) 1 else 0
+    )
 }
 
-fun Double.nextBiggerInt(): Int {
-    val ceil = ceil(this)
-    return if (ceil == this) {
-        ceil + 1
-    } else {
-        ceil
-    }.toInt()
+
+fun Range<Long>.length(): Long {
+    return upperEndpoint() - lowerEndpoint() + 1
 }
 
 

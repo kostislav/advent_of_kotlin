@@ -1,11 +1,12 @@
 package cz.judas.jan.advent.year2023
 
+import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOnPattern
-import cz.judas.jan.advent.nextBiggerInt
-import cz.judas.jan.advent.nextSmallerInt
+import cz.judas.jan.advent.enclosedLongRange
+import cz.judas.jan.advent.length
 import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.product
 import cz.judas.jan.advent.splitOnOnly
@@ -31,24 +32,18 @@ object Day6 {
     private fun waysToWin(time: Long, maxDistance: Long): Int {
         val inflectionPoint = time / 2.0
         val limit = sqrt(inflectionPoint * inflectionPoint - maxDistance)
-        return (inflectionPoint + limit).nextSmallerInt() - (inflectionPoint - limit).nextBiggerInt() + 1
+        return Range.open(inflectionPoint - limit, inflectionPoint + limit).enclosedLongRange().length().toInt()
     }
 
-    @Pattern("(.*)\n(.*)")
+    @Pattern("Time:\\s+(.*)\nDistance:\\s+(.*)")
     data class RaceTable(
-        val times: TimeLine,
-        val distances: DistanceLine,
+        val times: @SplitOnPattern("\\s+") List<Int>,
+        val distances: @SplitOnPattern("\\s+") List<Int>,
     ) {
         fun games(): List<Game> {
-            return times.times.zip(distances.distances).map { (time, distance) -> Game(time, distance) }
+            return times.zip(distances).map { (time, distance) -> Game(time, distance) }
         }
     }
-
-    @Pattern("Time:\\s+(.*)")
-    data class TimeLine(val times: @SplitOnPattern("\\s+") List<Int>)
-
-    @Pattern("Distance:\\s+(.*)")
-    data class DistanceLine(val distances: @SplitOnPattern("\\s+") List<Int>)
 
     data class Game(val time: Int, val distance: Int)
 }
