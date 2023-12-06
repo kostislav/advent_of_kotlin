@@ -21,7 +21,7 @@ class RangeMap<K : Comparable<K>, V>(
         var current = range.start
         while (current < range.endExclusive) {
             val lower = values.floorEntry(current)
-            if (lower === null || lower.value.first < current || current >= lower.value.first) {
+            if (lower === null || lower.value.first <= current) {
                 val nextStart = values.ceilingKey(current) ?: range.endExclusive
                 result += BetterRange(current, nextStart) to defaultValue
                 current = nextStart
