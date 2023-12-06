@@ -1,5 +1,27 @@
 package cz.judas.jan.advent
 
+import kotlin.math.ceil
+import kotlin.math.floor
+
+fun Double.nextSmallerInt(): Int {
+    val floor = floor(this)
+    return if (floor == this) {
+        floor - 1
+    } else {
+        floor
+    }.toInt()
+}
+
+fun Double.nextBiggerInt(): Int {
+    val ceil = ceil(this)
+    return if (ceil == this) {
+        ceil + 1
+    } else {
+        ceil
+    }.toInt()
+}
+
+
 class TwoDimensionalArray<out T> private constructor(private val items: List<List<T>>) {
     val numRows get() = items.size
 

@@ -4,11 +4,11 @@ import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOnPattern
+import cz.judas.jan.advent.nextBiggerInt
+import cz.judas.jan.advent.nextSmallerInt
 import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.product
 import cz.judas.jan.advent.splitOnOnly
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.sqrt
 
 object Day6 {
@@ -31,25 +31,7 @@ object Day6 {
     private fun waysToWin(time: Long, maxDistance: Long): Int {
         val inflectionPoint = time / 2.0
         val limit = sqrt(inflectionPoint * inflectionPoint - maxDistance)
-        return nextSmallerInt(inflectionPoint + limit) - nextBiggerInt(inflectionPoint - limit) + 1
-    }
-
-    fun nextSmallerInt(value: Double): Int {
-        val floor = floor(value)
-        return if (floor == value) {
-            floor - 1
-        } else {
-            floor
-        }.toInt()
-    }
-
-    fun nextBiggerInt(value: Double): Int {
-        val ceil = ceil(value)
-        return if (ceil == value) {
-            ceil + 1
-        } else {
-            ceil
-        }.toInt()
+        return (inflectionPoint + limit).nextSmallerInt() - (inflectionPoint - limit).nextBiggerInt() + 1
     }
 
     @Pattern("(.*)\n(.*)")
