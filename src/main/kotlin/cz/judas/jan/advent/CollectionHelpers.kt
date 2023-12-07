@@ -9,6 +9,7 @@ import com.google.common.collect.Multimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
 import java.util.*
+import kotlin.Comparator
 
 
 fun <T : Comparable<T>> List<T>.maxN(howMany: Int): List<T> {
@@ -167,6 +168,14 @@ operator fun <T> Multiset<T>.minusAssign(item: T) {
     remove(item)
 }
 
+fun <T, R> Iterable<T>.mapIndexedFrom(firstIndex: Int, transform: (index: Int, T) -> R): List<R> {
+    return mapIndexed { i, item -> transform(i + firstIndex, item) }
+}
+
+fun <T> Iterable<T>.associateToIndex(startIndex: Int = 0): Map<T, Int> {
+    return mapIndexedFrom(startIndex) { i, item -> item to i }.toMap()
+}
+
 fun <T: Any> unfold(initial: T, next: (T) -> T?): List<T> {
     val result = mutableListOf<T>()
     var current: T? = initial
@@ -175,4 +184,34 @@ fun <T: Any> unfold(initial: T, next: (T) -> T?): List<T> {
         current = next(current)
     }
     return result
+}
+
+fun <T> List<T>.replace(oldItem: T, newItem: T): List<T> {
+    return map {
+        if (it == oldItem) {
+            newItem
+        } else {
+            it
+        }
+    }
+}
+
+class LexicographicalListComparator<T>(
+    private val itemComparator: Comparator<T>
+): Comparator<List<T>> {
+    override fun compare(list1: List<T>, list2: List<T>): Int {
+        for (i in list1.indices) {
+            val itemResult = itemComparator.compare(list1[i], list2[i])
+            if (itemResult != 0) {
+                return itemResult
+            }
+        }
+        return 0
+    }
+
+    companion object {
+        fun <T: Comparable<T>> natural(): LexicographicalListComparator<T> {
+            return LexicographicalListComparator(Comparator.naturalOrder())
+        }
+    }
 }

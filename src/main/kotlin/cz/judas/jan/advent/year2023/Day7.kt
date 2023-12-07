@@ -1,88 +1,87 @@
 package cz.judas.jan.advent.year2023
 
+import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.LexicographicalListComparator
 import cz.judas.jan.advent.asMap
+import cz.judas.jan.advent.associateToIndex
 import cz.judas.jan.advent.characters
+import cz.judas.jan.advent.mapIndexedFrom
 import cz.judas.jan.advent.multiSetOf
+import cz.judas.jan.advent.replace
 import cz.judas.jan.advent.splitOnOnly
 import cz.judas.jan.advent.toMultiSet
+import cz.judas.jan.advent.year2023.Day7.CamelCardScoring.score
 
 object Day7 {
+    private val comparator =
+        compareBy<Pair<Pair<Int, List<Int>>, Int>> { it.first.first }
+            .then(compareBy(LexicographicalListComparator.natural()) { it.first.second })
+
+    @Answer("245794640")
     fun part1(input: InputData): Int {
-        val labels = mapOf(
-            '2' to '2',
-            '3' to '3',
-            '4' to '4',
-            '5' to '5',
-            '6' to '6',
-            '7' to '7',
-            '8' to '8',
-            '9' to '9',
-            'T' to 'A',
-            'J' to 'B',
-            'Q' to 'C',
-            'K' to 'D',
-            'A' to 'E',
-        )
+        val labelIndexes = listOf('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A').associateToIndex()
 
-        return input.lines().map { line ->
-            val (hand, bid) = line.splitOnOnly(" ")
-            val score = score(hand)
-            Pair(score, hand.map { labels.getValue(it) }.joinToString("")) to bid.toInt()
-        }
-            .sortedWith(compareBy({ it.first.first }, { it.first.second } ))
-            .map { it.second }
-            .mapIndexed { index, bid -> (index + 1) * bid}
-            .sum()
+        return input.lines()
+            .map { line ->
+                val (hand, bid) = line.splitOnOnly(" ")
+                val cards = hand.characters()
+                val score = score(cards)
+                Pair(score, cards.map { labelIndexes.getValue(it) }) to bid.toInt()
+            }
+            .let(::totalWinnings)
     }
 
+    @Answer("247899149")
     fun part2(input: InputData): Int {
-        val labels = mapOf(
-            '2' to '2',
-            '3' to '3',
-            '4' to '4',
-            '5' to '5',
-            '6' to '6',
-            '7' to '7',
-            '8' to '8',
-            '9' to '9',
-            'T' to 'A',
-            'J' to '1',
-            'Q' to 'C',
-            'K' to 'D',
-            'A' to 'E',
-        )
+        val labelIndexes = listOf('J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A').associateToIndex()
+        val nonJokers = labelIndexes.keys - 'J'
 
-        return input.lines().map { line ->
-            val (hand, bid) = line.splitOnOnly(" ")
-            val score = metaScore(hand, labels.keys - 'J')
-            Pair(score, hand.map { labels.getValue(it) }.joinToString("")) to bid.toInt()
-        }
-            .sortedWith(compareBy({ it.first.first }, { it.first.second } ))
+        return input.lines()
+            .map { line ->
+                val (hand, bid) = line.splitOnOnly(" ")
+                val cards = hand.characters()
+                val score = metaScore(cards, nonJokers)
+                Pair(score, cards.map { labelIndexes.getValue(it) }) to bid.toInt()
+            }
+            .let(::totalWinnings)
+    }
+
+    private fun totalWinnings(games: List<Pair<Pair<Int, List<Int>>, Int>>): Int {
+        return games
+            .sortedWith(comparator)
             .map { it.second }
-            .mapIndexed { index, bid -> (index + 1) * bid}
+            .mapIndexedFrom(1) { index, bid -> index * bid }
             .sum()
-
     }
 
-    private fun score(hand: String): Int {
-        val distinctCardCounts = hand.characters().toMultiSet().asMap().values.toMultiSet()
-        return when (distinctCardCounts) {
-            multiSetOf(5) -> 7
-            multiSetOf(4, 1) -> 6
-            multiSetOf(3, 2) -> 5
-            multiSetOf(3, 1, 1) -> 4
-            multiSetOf(2, 2, 1) -> 3
-            multiSetOf(2, 1, 1, 1) -> 2
-            else -> 1
-        }
-    }
-
-    private fun metaScore(hand: String, otherLabels: Set<Char>): Int {
+    private fun metaScore(hand: List<Char>, otherLabels: Set<Char>): Int {
         return if ('J' in hand) {
-            otherLabels.maxOf { metaScore(hand.replaceFirst('J', it), otherLabels) }
+            otherLabels.maxOf { score(hand.replace('J', it)) }
         } else {
             score(hand)
+        }
+    }
+
+    object CamelCardScoring {
+        private val fiveOfAKind = multiSetOf(5)
+        private val fourOfAKind = multiSetOf(4, 1)
+        private val fullHouse = multiSetOf(3, 2)
+        private val threeOfAKind = multiSetOf(3, 1, 1)
+        private val twoPairs = multiSetOf(2, 2, 1)
+        private val onePair = multiSetOf(2, 1, 1, 1)
+
+        fun score(hand: List<Char>): Int {
+            val distinctCardCounts = hand.toMultiSet().asMap().values.toMultiSet()
+            return when (distinctCardCounts) {
+                fiveOfAKind -> 7
+                fourOfAKind -> 6
+                fullHouse -> 5
+                threeOfAKind -> 4
+                twoPairs -> 3
+                onePair -> 2
+                else -> 1
+            }
         }
     }
 }
