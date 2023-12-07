@@ -8,7 +8,6 @@ import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
-import cz.judas.jan.advent.year2023.Day5
 import java.util.*
 
 
@@ -85,6 +84,18 @@ fun <K : Comparable<K>, V> List<Pair<K, V>>.toMultiMap(): Multimap<K, V> {
         result.put(key, value)
     }
     return result
+}
+
+fun <T> Iterable<T>.toMultiSet(): Multiset<T> {
+    return HashMultiset.create(this)
+}
+
+fun <T> Multiset<T>.asMap(): Map<T, Int> {
+    return elementSet().associateWith { count(it) }
+}
+
+fun <T> multiSetOf(vararg values: T): Multiset<T> {
+    return HashMultiset.create<T>(values.toList())
 }
 
 fun <K : Any, V : Any> biMapOf(vararg pairs: Pair<K, V>): BiMap<K, V> {
