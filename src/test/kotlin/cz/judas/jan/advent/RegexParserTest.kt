@@ -89,6 +89,15 @@ class RegexParserTest {
         assertThat(parsed, equalTo(WithLongList("hh", listOf(1L, 2L, 3L))))
     }
 
+    @Test
+    fun parsesListOfChars() {
+        val input = "abcd"
+
+        val parsed = parserFor<List<Char>>().parse(input)
+
+        assertThat(parsed, equalTo(listOf('a', 'b', 'c', 'd')))
+    }
+
     @Pattern("([a-z]+) is ([a-z]+)")
     data class Simple(val first: String, val second: String)
 

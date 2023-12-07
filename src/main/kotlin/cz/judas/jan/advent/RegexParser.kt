@@ -1,5 +1,6 @@
 package cz.judas.jan.advent
 
+import org.intellij.lang.annotations.Language
 import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -13,13 +14,13 @@ import kotlin.reflect.typeOf
 // multiline parameter with default value does not work:
 // https://youtrack.jetbrains.com/issue/KT-39369/KotlinReflectionInternalError-Method-is-not-supported-for-default-value-in-type-annotation
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE)
-annotation class Pattern(val pattern: String)
+annotation class Pattern(@Language("RegExp") val pattern: String)
 
 @Target(AnnotationTarget.TYPE)
 annotation class SplitOn(vararg val delimiters: String)
 
 @Target(AnnotationTarget.TYPE)
-annotation class SplitOnPattern(val delimiterPattern: String)
+annotation class SplitOnPattern(@Language("RegExp") val delimiterPattern: String)
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> parserFor(): Parser<T> {
@@ -38,24 +39,32 @@ fun buildParser(type: KType): Parser<Any> {
         is KClass<*> -> {
             if (classifier == List::class) {
                 val itemType = type.arguments[0].type!!
-                val itemParser = buildParser(itemType)
                 val splitOnAnnotation = type.getAnnotation(SplitOn::class)
                 if (splitOnAnnotation === null) {
                     val splitOnPatternAnnotation = type.getAnnotation(SplitOnPattern::class)
                     if (splitOnPatternAnnotation === null) {
-                        return PatternListParser(
-                            buildRegex(itemType.getAnnotation(Pattern::class)!!),
-                            itemParser
-                        )
+                        val patternAnnotation = itemType.getAnnotation(Pattern::class)
+                        if (patternAnnotation === null) {
+                            if (itemType.classifier == Char::class) {
+                                return CharListParser
+                            } else {
+                                throw RuntimeException("Cannot parse into ${type}")
+                            }
+                        } else {
+                            return PatternListParser(
+                                buildRegex(patternAnnotation),
+                                buildParser(itemType)
+                            )
+                        }
                     } else {
                         return PatternSplittingListParser(
                             Regex(splitOnPatternAnnotation.delimiterPattern),
-                            itemParser
+                            buildParser(itemType)
                         )
                     }
                 } else {
                     val delimiters = splitOnAnnotation.delimiters
-                    return SplittingListParser(delimiters, itemParser)
+                    return SplittingListParser(delimiters, buildParser(itemType))
                 }
             } else if (classifier.isSubclassOf(Enum::class)) {
                 val values = classifier.java.enumConstants.associateBy { (it as Enum<*>).name }
@@ -125,6 +134,12 @@ object IntParser : Parser<Int> {
 object LongParser : Parser<Long> {
     override fun parse(input: String): Long {
         return input.toLong()
+    }
+}
+
+object CharListParser : Parser<List<Char>> {
+    override fun parse(input: String): List<Char> {
+        return input.characters()
     }
 }
 

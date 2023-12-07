@@ -3,13 +3,13 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.LexicographicalListComparator
+import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.asMap
 import cz.judas.jan.advent.associateToIndex
-import cz.judas.jan.advent.characters
 import cz.judas.jan.advent.mapIndexedFrom
 import cz.judas.jan.advent.multiSetOf
+import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.replace
-import cz.judas.jan.advent.splitOnOnly
 import cz.judas.jan.advent.toMultiSet
 import cz.judas.jan.advent.year2023.Day7.CamelCardScoring.score
 
@@ -18,16 +18,17 @@ object Day7 {
         compareBy<Pair<Pair<Int, List<Int>>, Int>> { it.first.first }
             .then(compareBy(LexicographicalListComparator.natural()) { it.first.second })
 
+    private val parser = parserFor<Game>()
+
     @Answer("245794640")
     fun part1(input: InputData): Int {
         val labelIndexes = listOf('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A').associateToIndex()
 
         return input.lines()
             .map { line ->
-                val (hand, bid) = line.splitOnOnly(" ")
-                val cards = hand.characters()
-                val score = score(cards)
-                Pair(score, cards.map { labelIndexes.getValue(it) }) to bid.toInt()
+                val game = parser.parse(line)
+                val score = score(game.hand)
+                Pair(score, game.hand.map { labelIndexes.getValue(it) }) to game.bid
             }
             .let(::totalWinnings)
     }
@@ -39,10 +40,9 @@ object Day7 {
 
         return input.lines()
             .map { line ->
-                val (hand, bid) = line.splitOnOnly(" ")
-                val cards = hand.characters()
-                val score = metaScore(cards, nonJokers)
-                Pair(score, cards.map { labelIndexes.getValue(it) }) to bid.toInt()
+                val game = parser.parse(line)
+                val score = metaScore(game.hand, nonJokers)
+                Pair(score, game.hand.map { labelIndexes.getValue(it) }) to game.bid
             }
             .let(::totalWinnings)
     }
@@ -62,6 +62,12 @@ object Day7 {
             score(hand)
         }
     }
+
+    @Pattern("(.+) (\\d+)")
+    data class Game(
+        val hand: List<Char>,
+        val bid: Int
+    )
 
     object CamelCardScoring {
         private val fiveOfAKind = multiSetOf(5)
