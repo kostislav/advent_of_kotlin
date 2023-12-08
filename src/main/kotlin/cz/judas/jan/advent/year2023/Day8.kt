@@ -5,51 +5,47 @@ import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.cycle
+import cz.judas.jan.advent.leastCommonMultiple
 import cz.judas.jan.advent.parserFor
-import org.apache.commons.math3.util.ArithmeticUtils
 
 object Day8 {
-
     @Answer("14681")
     fun part1(input: InputData): Int {
         val maps = parserFor<Maps>().parse(input.asString())
-        val nodes = maps.nodes.associateBy { it.thisNode }
-        val instructions = maps.instructions.cycle().iterator()
 
-        return generateSequence("AAA") { nodes.getValue(it).next(instructions.next()) }
-            .takeWhile { it != "ZZZ" }
-            .count()
+        return shortestPath("AAA", maps) { it == "ZZZ" }
     }
 
     @Answer("14321394058031")
     fun part2(input: InputData): Long {
         val maps = parserFor<Maps>().parse(input.asString())
-        val nodes = maps.nodes.associateBy { it.thisNode }
-        val instructions = maps.instructions.cycle()
 
-        val shortestPaths = nodes.keys
+        return maps.nodesByName.keys
             .filter { it.last() == 'A' }
-            .toList()
-            .map { shortestPath(it, nodes, instructions) }
-
-        return shortestPaths.drop(2)
-            .fold(ArithmeticUtils.lcm(shortestPaths[0], shortestPaths[1]).toLong()) { soFar, current ->
-                ArithmeticUtils.lcm(soFar, current.toLong())
+            .map { node ->
+                shortestPath(node, maps) { it.last() == 'Z' }
             }
+            .map { it.toLong() }
+            .leastCommonMultiple()
     }
 
-    private fun shortestPath(startingNode: String, nodes: Map<String, Node>, instructions: Sequence<Char>): Int {
-        val iterator = instructions.iterator()
-        return generateSequence(startingNode) { nodes.getValue(it).next(iterator.next()) }
-            .takeWhile { it.last() != 'Z' }
+    private fun shortestPath(startingNode: String, maps: Maps, target: (String) -> Boolean): Int {
+        val iterator = maps.infiniteInstructions.iterator()
+        return generateSequence(startingNode) {
+            maps.nodesByName.getValue(it).next(iterator.next())
+        }
+            .takeWhile { !target(it) }
             .count()
     }
 
     @Pattern("(\\w+)\n\n(.+)")
-    data class Maps(
-        val instructions: List<Char>,
-        val nodes: @SplitOn("\n") List<Node>
-    )
+    class Maps(
+        instructions: List<Char>,
+        nodes: @SplitOn("\n") List<Node>
+    ) {
+        val infiniteInstructions = instructions.cycle()
+        val nodesByName = nodes.associateBy { it.thisNode }
+    }
 
     @Pattern("(\\w+) = \\((\\w+), (\\w+)\\)")
     data class Node(

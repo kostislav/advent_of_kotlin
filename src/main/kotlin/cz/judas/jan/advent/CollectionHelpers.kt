@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
+import org.apache.commons.math3.util.ArithmeticUtils
 import java.util.*
 import kotlin.Comparator
 
@@ -198,6 +199,11 @@ fun <T> List<T>.replace(oldItem: T, newItem: T): List<T> {
 
 fun <T> List<T>.cycle(): Sequence<T> {
     return generateSequence(this) { this }.flatten()
+}
+
+fun Iterable<Long>.leastCommonMultiple(): Long {
+    val iterator = iterator()
+    return iterator.fold(iterator.next()) { soFar, current -> ArithmeticUtils.lcm(soFar, current) }
 }
 
 class LexicographicalListComparator<T>(
