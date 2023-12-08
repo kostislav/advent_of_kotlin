@@ -196,6 +196,10 @@ fun <T> List<T>.replace(oldItem: T, newItem: T): List<T> {
     }
 }
 
+fun <T> List<T>.cycle(): Sequence<T> {
+    return generateSequence(this) { this }.flatten()
+}
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
 ): Comparator<List<T>> {
