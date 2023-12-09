@@ -31,6 +31,10 @@ fun <T> String.parse(parser: Parser<T>): T {
     return parser.parse(this)
 }
 
+fun <T> customParser(parsingFunction: (String) -> T): Parser<T> {
+    return CustomLambdaParser(parsingFunction)
+}
+
 fun buildParser(type: KType): Parser<Any> {
     return when (val classifier = type.classifier) {
         String::class -> StringParser
@@ -185,4 +189,13 @@ class PatternListParser<T>(
             }
             .map(itemParser::parse)
     }
+}
+
+class CustomLambdaParser<T>(
+    private val parsingFunction: (String) -> T
+): Parser<T> {
+    override fun parse(input: String): T {
+        return parsingFunction(input)
+    }
+
 }
