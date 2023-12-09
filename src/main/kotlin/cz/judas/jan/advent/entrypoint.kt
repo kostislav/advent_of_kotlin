@@ -18,7 +18,7 @@ fun run(year: Int, day: Int, part: Int, submit: Boolean): PuzzleResult {
 }
 
 fun main() {
-    val result = run(year = 2023, day = 9, part = 2, submit = true)
+    val result = run(year = 2023, day = 9, part = 1, submit = false)
     println()
     println()
     println(result.answer)
