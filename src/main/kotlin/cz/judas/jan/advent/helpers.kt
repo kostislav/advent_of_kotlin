@@ -29,6 +29,8 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
 
     operator fun get(x: Int, y: Int): T = items[x][y]
 
+    operator fun get(position: Pair<Int, Int>): T = items[position.first][position.second]
+
     fun getOrNull(x: Int, y: Int): T? {
         return if (x in 0..<numRows && y in 0..<numColumns) {
             get(x, y)
