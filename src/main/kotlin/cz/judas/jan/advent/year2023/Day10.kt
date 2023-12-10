@@ -145,52 +145,12 @@ object Day10 {
             analyzed.set(currentPosition.first, currentPosition.second, FieldType.LOOP)
         }
         val lookingFor = if (rightBias > 0) FieldType.RIGH else FieldType.LEFT
-        while (true) {
-            var foundMore = false
-            var foundCount = 0
-            for (row in 0..<analyzed.numRows) {
-                for (column in 0..<analyzed.numColumns) {
-                    if (analyzed.getSafe(row, column) == lookingFor) {
-                        foundCount += 1
-                        if (analyzed.isInside(row - 1, column - 1) && analyzed.getSafe(row - 1, column - 1) === null) {
-                            foundMore = true
-                            analyzed.set(row - 1, column - 1, lookingFor)
-                        }
-                        if (analyzed.isInside(row - 1, column) && analyzed.getSafe(row - 1, column) === null) {
-                            foundMore = true
-                            analyzed.set(row - 1, column, lookingFor)
-                        }
-                        if (analyzed.isInside(row - 1, column + 1) && analyzed.getSafe(row - 1, column + 1) === null) {
-                            foundMore = true
-                            analyzed.set(row - 1, column + 1, lookingFor)
-                        }
-                        if (analyzed.isInside(row, column - 1) && analyzed.getSafe(row, column - 1) === null) {
-                            foundMore = true
-                            analyzed.set(row, column - 1, lookingFor)
-                        }
-                        if (analyzed.isInside(row, column + 1) && analyzed.getSafe(row, column + 1) === null) {
-                            foundMore = true
-                            analyzed.set(row, column + 1, lookingFor)
-                        }
-                        if (analyzed.isInside(row + 1, column - 1) && analyzed.getSafe(row + 1, column - 1) === null) {
-                            foundMore = true
-                            analyzed.set(row + 1, column - 1, lookingFor)
-                        }
-                        if (analyzed.isInside(row + 1, column) && analyzed.getSafe(row + 1, column) === null) {
-                            foundMore = true
-                            analyzed.set(row + 1, column, lookingFor)
-                        }
-                        if (analyzed.isInside(row + 1, column + 1) && analyzed.getSafe(row + 1, column + 1) === null) {
-                            foundMore = true
-                            analyzed.set(row + 1, column + 1, lookingFor)
-                        }
-                    }
-                }
-            }
-            if (!foundMore) {
-                return foundCount
+        analyzed.forEach { row, column, value ->
+            if (value == lookingFor) {
+                analyzed.floodFill(Pair(row, column), lookingFor)
             }
         }
+        return analyzed.count { it == lookingFor }
     }
 
     private fun loadDiagram(input: InputData): Pair<TwoDimensionalArray<Set<Direction>>, Pair<Int, Int>> {
@@ -302,6 +262,50 @@ object Day10 {
 
         fun isInside(row: Int, column: Int): Boolean {
             return row in 0..<numRows && column in 0..<numColumns
+        }
+
+        fun forEach(action: (Int, Int, T) -> Unit) {
+            for (row in 0..<numRows) {
+                for (column in 0..<numColumns) {
+                    action(row, column, getSafe(row, column))
+                }
+            }
+        }
+
+        fun count(predicate: (T) -> Boolean): Int {
+            return (0..<numRows).sumOf { row ->
+                (0..<numColumns).map { column ->
+                    if (predicate(getSafe(row, column))) 1 else 0
+                }.sum()
+            }
+        }
+
+        fun floodFill(startingPosition: Pair<Int, Int>, value: T) {
+            val (row, column) = startingPosition
+            if (isInside(row - 1, column - 1) && getSafe(row - 1, column - 1) === null) {
+                set(row - 1, column - 1, value)
+            }
+            if (isInside(row - 1, column) && getSafe(row - 1, column) === null) {
+                set(row - 1, column, value)
+            }
+            if (isInside(row - 1, column + 1) && getSafe(row - 1, column + 1) === null) {
+                set(row - 1, column + 1, value)
+            }
+            if (isInside(row, column - 1) && getSafe(row, column - 1) === null) {
+                set(row, column - 1, value)
+            }
+            if (isInside(row, column + 1) && getSafe(row, column + 1) === null) {
+                set(row, column + 1, value)
+            }
+            if (isInside(row + 1, column - 1) && getSafe(row + 1, column - 1) === null) {
+                set(row + 1, column - 1, value)
+            }
+            if (isInside(row + 1, column) && getSafe(row + 1, column) === null) {
+                set(row + 1, column, value)
+            }
+            if (isInside(row + 1, column + 1) && getSafe(row + 1, column + 1) === null) {
+                set(row + 1, column + 1, value)
+            }
         }
 
         companion object {
