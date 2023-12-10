@@ -5,68 +5,31 @@ import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
 
 object Day10 {
-    private val pipeTypes = mapOf(
-        '-' to setOf(Direction.LEFT, Direction.RIGHT),
-        '|' to setOf(Direction.UP, Direction.DOWN),
-        'L' to setOf(Direction.UP, Direction.RIGHT),
-        'J' to setOf(Direction.UP, Direction.LEFT),
-        '7' to setOf(Direction.DOWN, Direction.LEFT),
-        'F' to setOf(Direction.DOWN, Direction.RIGHT),
-    )
-    private val movement = mapOf(
-        Direction.UP to Pair(-1, 0),
-        Direction.DOWN to Pair(1, 0),
-        Direction.LEFT to Pair(0, -1),
-        Direction.RIGHT to Pair(0, 1),
-    )
-
     @Answer("6842")
     fun part1(input: InputData): Int {
-        val diagram = TwoDimensionalArray.charsFromLines(input.lines())
-        val startingPosition = (0..<diagram.numRows).asSequence()
-            .flatMap { row -> (0..<diagram.numColumns).asSequence().map { Pair(row, it) } }
-            .first { diagram[it.first, it.second] == 'S' }
+        val (diagram, startingPosition) = loadDiagram(input)
 
-        val startingDirections = Direction.entries
-            .filter {
-                val nextPosition = startingPosition + movement.getValue(it)
-                val field = diagram.getOrNull(nextPosition.first, nextPosition.second) ?: '.'
-                it in (pipeTypes[field] ?: emptySet()).map { it.inverse() }
-            }
-
-        var length = 1
-        var currentDirection = startingDirections[0]
-        var currentPosition = startingPosition + movement.getValue(currentDirection)
-        while (currentPosition != startingPosition) {
-            currentDirection = pipeTypes.getValue(diagram[currentPosition])
-                .first { it != currentDirection.inverse() }
-            currentPosition += movement.getValue(currentDirection)
-            length += 1
+        val steps = generateSequence(Step(startingPosition, diagram[startingPosition].first())) { step ->
+            val nextPosition = step.nextPosition()
+            val nextDirection = diagram[nextPosition].first { it != step.direction.inverse() }
+            Step(nextPosition, nextDirection)
         }
-        return length / 2
+        val length = steps.drop(1).takeWhile { it.position != startingPosition }.count()
+        return (length + 1) / 2
     }
 
     @Answer("393")
     fun part2(input: InputData): Int {
-        val diagram = TwoDimensionalArray.charsFromLines(input.lines())
-        val startingPosition = (0..<diagram.numRows).asSequence()
-            .flatMap { row -> (0..<diagram.numColumns).asSequence().map { Pair(row, it) } }
-            .first { diagram[it.first, it.second] == 'S' }
+        val (diagram, startingPosition) = loadDiagram(input)
 
-        val startingDirections = Direction.entries
-            .filter {
-                val nextPosition = startingPosition + movement.getValue(it)
-                val field = diagram.getOrNull(nextPosition.first, nextPosition.second) ?: '.'
-                it in (pipeTypes[field] ?: emptySet()).map { it.inverse() }
-            }
-
+        val startingDirections = diagram[startingPosition]
         val analyzed = Mutable2dArray<FieldType?>(diagram.numRows, diagram.numColumns, null)
-        var currentDirection = startingDirections[0]
-        var currentPosition = startingPosition + movement.getValue(currentDirection)
+        var currentDirection = startingDirections.first()
+        var currentPosition = startingPosition + currentDirection.movement
         var rightBias = 0
         while (currentPosition != startingPosition) {
             val previousDirection = currentDirection
-            currentDirection = pipeTypes.getValue(diagram[currentPosition])
+            currentDirection = diagram[currentPosition]
                 .first { it != currentDirection.inverse() }
 
             when (previousDirection) {
@@ -129,6 +92,7 @@ object Day10 {
                             updateField(analyzed, currentPosition, -1, 0, FieldType.RIGH)
                             updateField(analyzed, currentPosition, 1, 0, FieldType.LEFT)
                         }
+
                         Direction.UP -> {
                             updateField(analyzed, currentPosition, -1, 1, FieldType.RIGH)
                             updateField(analyzed, currentPosition, 1, 0, FieldType.LEFT)
@@ -136,6 +100,7 @@ object Day10 {
                             updateField(analyzed, currentPosition, 0, -1, FieldType.LEFT)
                             rightBias += 1
                         }
+
                         Direction.DOWN -> {
                             updateField(analyzed, currentPosition, -1, 0, FieldType.RIGH)
                             updateField(analyzed, currentPosition, -1, -1, FieldType.RIGH)
@@ -143,6 +108,7 @@ object Day10 {
                             updateField(analyzed, currentPosition, 1, 1, FieldType.LEFT)
                             rightBias -= 1
                         }
+
                         else -> {}
                     }
                 }
@@ -153,6 +119,7 @@ object Day10 {
                             updateField(analyzed, currentPosition, 1, 0, FieldType.RIGH)
                             updateField(analyzed, currentPosition, -1, 0, FieldType.LEFT)
                         }
+
                         Direction.UP -> {
                             updateField(analyzed, currentPosition, 1, 0, FieldType.RIGH)
                             updateField(analyzed, currentPosition, 1, 1, FieldType.RIGH)
@@ -160,6 +127,7 @@ object Day10 {
                             updateField(analyzed, currentPosition, -1, -1, FieldType.LEFT)
                             rightBias -= 1
                         }
+
                         Direction.DOWN -> {
                             updateField(analyzed, currentPosition, 1, -1, FieldType.RIGH)
                             updateField(analyzed, currentPosition, -1, 0, FieldType.LEFT)
@@ -167,12 +135,13 @@ object Day10 {
                             updateField(analyzed, currentPosition, 0, 1, FieldType.LEFT)
                             rightBias += 1
                         }
+
                         else -> {}
                     }
                 }
             }
 
-            currentPosition += movement.getValue(currentDirection)
+            currentPosition += currentDirection.movement
             analyzed.set(currentPosition.first, currentPosition.second, FieldType.LOOP)
         }
         val lookingFor = if (rightBias > 0) FieldType.RIGH else FieldType.LEFT
@@ -222,12 +191,43 @@ object Day10 {
                 return foundCount
             }
         }
-//        analyzed.items.forEach { println(it) } // TODO
-
-//        return 0
     }
 
-    fun updateField(
+    private fun loadDiagram(input: InputData): Pair<TwoDimensionalArray<Set<Direction>>, Pair<Int, Int>> {
+        val pipeTypes = mapOf(
+            '-' to setOf(Direction.LEFT, Direction.RIGHT),
+            '|' to setOf(Direction.UP, Direction.DOWN),
+            'L' to setOf(Direction.UP, Direction.RIGHT),
+            'J' to setOf(Direction.UP, Direction.LEFT),
+            '7' to setOf(Direction.DOWN, Direction.LEFT),
+            'F' to setOf(Direction.DOWN, Direction.RIGHT),
+            '.' to emptySet()
+        )
+
+        val diagram = TwoDimensionalArray.charsFromLines(input.lines())
+        val startingPosition = diagram.first { it == 'S' }
+
+        val startingDirections = Direction.entries
+            .filter { direction ->
+                val neighborPosition = startingPosition + direction.movement
+                val neighborDirections = pipeTypes.getValue(diagram.getOrNull(neighborPosition) ?: '.')
+                direction.inverse() in neighborDirections
+            }
+            .toSet()
+
+        return Pair(
+            diagram.map {
+                if (it == 'S') {
+                    startingDirections
+                } else {
+                    pipeTypes[it] ?: emptySet()
+                }
+            },
+            startingPosition
+        )
+    }
+
+    private fun updateField(
         field: Mutable2dArray<FieldType?>,
         currentPosition: Pair<Int, Int>,
         rowOffset: Int,
@@ -245,8 +245,20 @@ object Day10 {
         return Pair(first + other.first, second + other.second)
     }
 
-    enum class Direction {
-        UP, DOWN, LEFT, RIGHT;
+    data class Step(
+        val position: Pair<Int, Int>,
+        val direction: Direction
+    ) {
+        fun nextPosition(): Pair<Int, Int> {
+            return position + direction.movement
+        }
+    }
+
+    enum class Direction(val movement: Pair<Int, Int>) {
+        UP(Pair(-1, 0)),
+        DOWN(Pair(1, 0)),
+        LEFT(Pair(0, -1)),
+        RIGHT(Pair(0, 1));
 
         fun inverse(): Direction {
             return when (this) {
@@ -262,8 +274,9 @@ object Day10 {
         LOOP, LEFT, RIGH  /* TODO */
     }
 
-    class Mutable2dArray<T> private constructor(/*private TODO*/ val items: MutableList<MutableList<T>>,
-                                                private val defaultValue: T
+    class Mutable2dArray<T> private constructor(
+        private val items: MutableList<MutableList<T>>,
+        private val defaultValue: T
     ) {
         val numRows get() = items.size
 

@@ -39,12 +39,26 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
         }
     }
 
+    fun getOrNull(position: Pair<Int, Int>): T? {
+        return getOrNull(position.first, position.second)
+    }
+
     fun rotateRight(): TwoDimensionalArray<T> {
         return create(numColumns, numRows) { i, j -> get(numRows - 1 - j, i) }
     }
 
     fun row(index: Int): List<T> {
         return items[index]
+    }
+
+    fun <O> map(transformation: (T) -> O): TwoDimensionalArray<O> {
+        return TwoDimensionalArray(items.map { it.map(transformation) })
+    }
+
+    fun first(predicate: (T) -> Boolean): Pair<Int, Int> {
+        return (0..<numRows).asSequence()
+            .flatMap { row -> (0..<numColumns).asSequence().map { Pair(row, it) } }
+            .first { predicate(get(it)) }
     }
 
     companion object {
