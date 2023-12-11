@@ -61,6 +61,24 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
             .first { predicate(get(it)) }
     }
 
+    fun rowIndices(): IntRange {
+        return 0..<numRows
+    }
+
+    fun columnIndices(): IntRange {
+        return 0..<numColumns
+    }
+
+    fun entries(): Sequence<Pair<Pair<Int, Int>, T>> {
+        return sequence {
+            rowIndices().forEach { row ->
+                columnIndices().forEach { column ->
+                    yield(Pair(Pair(row, column), get(row, column)))
+                }
+            }
+        }
+    }
+
     companion object {
         fun charsFromLines(lines: List<String>): TwoDimensionalArray<Char> {
             return create(lines.size, lines[0].length) { i, j -> lines[i][j] }
