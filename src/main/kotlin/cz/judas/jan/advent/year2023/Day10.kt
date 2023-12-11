@@ -1,6 +1,7 @@
 package cz.judas.jan.advent.year2023
 
 import cz.judas.jan.advent.Answer
+import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
 
@@ -142,7 +143,7 @@ object Day10 {
             }
 
             currentPosition += currentDirection.movement
-            analyzed.set(currentPosition.first, currentPosition.second, FieldType.LOOP)
+            analyzed.set(currentPosition.row, currentPosition.column, FieldType.LOOP)
         }
         val lookingFor = if (rightBias > 0) FieldType.RIGH else FieldType.LEFT
         analyzed.forEach { row, column, value ->
@@ -153,7 +154,7 @@ object Day10 {
         return analyzed.count { it == lookingFor }
     }
 
-    private fun loadDiagram(input: InputData): Pair<TwoDimensionalArray<Set<Direction>>, Pair<Int, Int>> {
+    private fun loadDiagram(input: InputData): Pair<TwoDimensionalArray<Set<Direction>>, Coordinate> {
         val pipeTypes = mapOf(
             '-' to setOf(Direction.LEFT, Direction.RIGHT),
             '|' to setOf(Direction.UP, Direction.DOWN),
@@ -189,27 +190,23 @@ object Day10 {
 
     private fun updateField(
         field: Mutable2dArray<FieldType?>,
-        currentPosition: Pair<Int, Int>,
+        currentPosition: Coordinate,
         rowOffset: Int,
         columnOffset: Int,
         value: FieldType
     ) {
-        val targetRow = currentPosition.first + rowOffset
-        val targetColumn = currentPosition.second + columnOffset
+        val targetRow = currentPosition.row + rowOffset
+        val targetColumn = currentPosition.column + columnOffset
         if (field.getSafe(targetRow, targetColumn) != FieldType.LOOP) {
             field.setSafe(targetRow, targetColumn, value)
         }
     }
 
-    operator fun Pair<Int, Int>.plus(other: Pair<Int, Int>): Pair<Int, Int> {
-        return Pair(first + other.first, second + other.second)
-    }
-
     data class Step(
-        val position: Pair<Int, Int>,
+        val position: Coordinate,
         val direction: Direction
     ) {
-        fun nextPosition(): Pair<Int, Int> {
+        fun nextPosition(): Coordinate {
             return position + direction.movement
         }
     }

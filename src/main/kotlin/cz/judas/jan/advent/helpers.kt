@@ -2,6 +2,7 @@ package cz.judas.jan.advent
 
 import com.google.common.collect.BoundType
 import com.google.common.collect.Range
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -29,7 +30,7 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
 
     operator fun get(x: Int, y: Int): T = items[x][y]
 
-    operator fun get(position: Pair<Int, Int>): T = items[position.first][position.second]
+    operator fun get(position: Coordinate): T = items[position.row][position.column]
 
     fun getOrNull(x: Int, y: Int): T? {
         return if (x in 0..<numRows && y in 0..<numColumns) {
@@ -39,8 +40,8 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
         }
     }
 
-    fun getOrNull(position: Pair<Int, Int>): T? {
-        return getOrNull(position.first, position.second)
+    fun getOrNull(position: Coordinate): T? {
+        return getOrNull(position.row, position.column)
     }
 
     fun rotateRight(): TwoDimensionalArray<T> {
@@ -55,9 +56,9 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
         return TwoDimensionalArray(items.map { it.map(transformation) })
     }
 
-    fun first(predicate: (T) -> Boolean): Pair<Int, Int> {
+    fun first(predicate: (T) -> Boolean): Coordinate {
         return (0..<numRows).asSequence()
-            .flatMap { row -> (0..<numColumns).asSequence().map { Pair(row, it) } }
+            .flatMap { row -> (0..<numColumns).asSequence().map { Coordinate(row, it) } }
             .first { predicate(get(it)) }
     }
 
@@ -69,14 +70,30 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
         return 0..<numColumns
     }
 
-    fun entries(): Sequence<Pair<Pair<Int, Int>, T>> {
+    fun entries(): Sequence<Pair<Coordinate, T>> {
         return sequence {
             rowIndices().forEach { row ->
                 columnIndices().forEach { column ->
-                    yield(Pair(Pair(row, column), get(row, column)))
+                    yield(Pair(Coordinate(row, column), get(row, column)))
                 }
             }
         }
+    }
+
+    fun rows(): Sequence<Sequence<T>> {
+        return items
+            .asSequence()
+            .map { row ->
+                columnIndices().asSequence().map { column -> row[column] }
+            }
+    }
+
+    fun columns(): Sequence<Sequence<T>> {
+        return columnIndices()
+            .asSequence()
+            .map { column ->
+                rowIndices().asSequence().map { row -> get(row, column) }
+            }
     }
 
     companion object {
@@ -95,6 +112,16 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
 }
 
 data class Vector2d(val x: Int, val y: Int)
+
+data class Coordinate(val row: Int, val column: Int) {
+    operator fun plus(delta: Pair<Int, Int>): Coordinate {
+        return Coordinate(row + delta.first, column + delta.second)
+    }
+
+    fun manhattanDistance(other: Coordinate): Int {
+        return abs(row - other.row) + abs(column - other.column)
+    }
+}
 
 enum class Digit {
     ZERO,

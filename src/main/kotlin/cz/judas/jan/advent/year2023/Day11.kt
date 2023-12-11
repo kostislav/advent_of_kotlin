@@ -3,7 +3,7 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
-import kotlin.math.abs
+import cz.judas.jan.advent.cartesianProduct
 
 object Day11 {
     @Answer("9591768")
@@ -17,27 +17,24 @@ object Day11 {
     }
 
     fun expand(input: InputData, factor: Int): Long {
-        val toAdd = factor.toLong() - 1
+        val toAdd = factor - 1
         val image = TwoDimensionalArray.charsFromLines(input.lines())
-        val emptyRows = image.rowIndices().filter { row ->
-            image.columnIndices().all { column -> image[row, column] == '.' }
-        }.toSortedSet()
-        val emptyColumns = image.columnIndices().filter { column ->
-            image.rowIndices().all { row -> image[row, column] == '.' }
-        }.toSortedSet()
+        val emptyRows = image.rows()
+            .mapIndexedNotNull { i, row -> if (row.all { it == '.' }) i else null }
+            .toSortedSet()
+        val emptyColumns = image.columns()
+            .mapIndexedNotNull { j, column -> if (column.all { it == '.' }) j else null }
+            .toSortedSet()
         val galaxies = image.entries()
             .filter { (_, value) -> value == '#' }
-            .map { (position, _) -> position }
-        val expandedGalaxies = galaxies.map { galaxy ->
-            Pair(
-                galaxy.first + emptyRows.headSet(galaxy.first).size * toAdd,
-                galaxy.second + emptyColumns.headSet(galaxy.second).size * toAdd
-            )
-        }.toList()
+            .map { (position, _) ->
+                position + Pair(
+                    emptyRows.headSet(position.row).size * toAdd,
+                    emptyColumns.headSet(position.column).size * toAdd
+                )
+            }.toList()
 
-        return expandedGalaxies
-            .sumOf { galaxy ->
-                expandedGalaxies.sumOf { abs(galaxy.first - it.first) + abs(galaxy.second - it.second) }
-            } / 2
+        return galaxies.cartesianProduct(galaxies)
+            .sumOf { (first, second) -> first.manhattanDistance(second).toLong() } / 2
     }
 }

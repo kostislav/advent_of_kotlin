@@ -39,8 +39,9 @@ fun <T> List<T>.splitOn(predicate: (T) -> Boolean): List<List<T>> {
     return result
 }
 
-fun <T1, T2> List<T1>.cartesianProduct(other: List<T2>): List<Pair<T1, T2>> {
-    return this.flatMap { item1 -> other.map { item2 -> Pair(item1, item2) } }
+fun <T1, T2> List<T1>.cartesianProduct(other: List<T2>): Sequence<Pair<T1, T2>> {
+    val otherAsSequence = other.asSequence()
+    return this.asSequence().flatMap { item1 -> otherAsSequence.map { item2 -> Pair(item1, item2) } }
 }
 
 fun <T> List<T>.splitOnOnly(delimiter: (T) -> Boolean): Pair<List<T>, List<T>> {
