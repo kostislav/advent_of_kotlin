@@ -207,6 +207,8 @@ fun Iterable<Long>.leastCommonMultiple(): Long {
     return iterator.fold(iterator.next()) { soFar, current -> ArithmeticUtils.lcm(soFar, current) }
 }
 
+operator fun <T> List<T>.times(count: Int): List<T> = List(count) { this }.flatten()
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
 ): Comparator<List<T>> {
