@@ -27,14 +27,11 @@ object Day13 {
                 val (horizontalLines, verticalLines) = reflectionLines(pattern)
                 pattern.rowIndices().sumOf { modifiedRow ->
                     pattern.columnIndices().sumOf { modifiedColumn ->
-                        val modifiedPattern = TwoDimensionalArray.create(
-                            pattern.numRows,
-                            pattern.numColumns
-                        ) { row, column ->
+                        val modifiedPattern = pattern.mapIndexed { row, column, value ->
                             if (row == modifiedRow && column == modifiedColumn) {
-                                if (pattern[row, column] == '.') '#' else '.'
+                                if (value == '.') '#' else '.'
                             } else {
-                                pattern[row, column]
+                                value
                             }
                         }
                         val (modifiedHorizontalLines, modifiedVerticalLines) = reflectionLines(modifiedPattern)

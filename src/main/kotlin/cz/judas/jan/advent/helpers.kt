@@ -23,14 +23,14 @@ fun Range<Long>.length(): Long {
 }
 
 
-class TwoDimensionalArray<out T> private constructor(private val items: List<List<T>>) {
-    val numRows get() = items.size
+class TwoDimensionalArray<out T>(
+    val numRows: Int,
+    val numColumns: Int,
+    private val lookup: (Int, Int) -> T
+) {
+    operator fun get(x: Int, y: Int): T = lookup(x, y)
 
-    val numColumns get() = items[0].size
-
-    operator fun get(x: Int, y: Int): T = items[x][y]
-
-    operator fun get(position: Coordinate): T = items[position.row][position.column]
+    operator fun get(position: Coordinate): T = get(position.row, position.column)
 
     fun getOrNull(x: Int, y: Int): T? {
         return if (x in 0..<numRows && y in 0..<numColumns) {
@@ -45,11 +45,13 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
     }
 
     fun rotateRight(): TwoDimensionalArray<T> {
-        return create(numColumns, numRows) { i, j -> get(numRows - 1 - j, i) }
+        return TwoDimensionalArray(numColumns, numRows) { i, j -> get(numRows - 1 - j, i) }
     }
 
-    fun row(index: Int): List<T> {
-        return items[index]
+    fun row(index: Int): Sequence<T> {
+        return columnIndices()
+            .asSequence()
+            .map { columnIndex -> get(index, columnIndex) }
     }
 
     fun column(index: Int): Sequence<T> {
@@ -59,7 +61,11 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
     }
 
     fun <O> map(transformation: (T) -> O): TwoDimensionalArray<O> {
-        return TwoDimensionalArray(items.map { it.map(transformation) })
+        return TwoDimensionalArray(numRows, numColumns) { row, column -> transformation(get(row, column))}
+    }
+
+    fun <O> mapIndexed(transformation: (row: Int, column: Int, T) -> O): TwoDimensionalArray<O> {
+        return TwoDimensionalArray(numRows, numColumns) { row, column -> transformation(row, column, get(row, column))}
     }
 
     fun first(predicate: (T) -> Boolean): Coordinate {
@@ -87,32 +93,30 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
     }
 
     fun rows(): Sequence<Sequence<T>> {
-        return items
+        return rowIndices()
             .asSequence()
-            .map { row ->
-                columnIndices().asSequence().map { column -> row[column] }
-            }
+            .map { row(it) }
     }
 
     fun columns(): Sequence<Sequence<T>> {
         return columnIndices()
             .asSequence()
-            .map { column ->
-                rowIndices().asSequence().map { row -> get(row, column) }
-            }
+            .map { column(it) }
+    }
+
+    fun materialized(): TwoDimensionalArray<T> {
+        val snapshot = List(numRows) { i ->
+            List(numColumns) { j ->
+                get(i, j)
+            }.toList()
+        }.toList()
+
+        return TwoDimensionalArray(numRows, numColumns) { row, column -> snapshot[row][column]}
     }
 
     companion object {
         fun charsFromLines(lines: List<String>): TwoDimensionalArray<Char> {
-            return create(lines.size, lines[0].length) { i, j -> lines[i][j] }
-        }
-
-        fun <T> create(numRows: Int, numColumns: Int, initializer: (Int, Int) -> T): TwoDimensionalArray<T> {
-            return TwoDimensionalArray(List(numRows) { i ->
-                List(numColumns) { j ->
-                    initializer(i, j)
-                }.toList()
-            }.toList())
+            return TwoDimensionalArray(lines.size, lines[0].length) { i, j -> lines[i][j] }
         }
     }
 }

@@ -16,7 +16,7 @@ object Day5 {
         val cratesArray = TwoDimensionalArray.charsFromLines(crates).rotateRight()
         val stacks = (1..cratesArray.numRows step 4)
             .associate {
-                val line = cratesArray.row(it)
+                val line = cratesArray.row(it).toList()
                 val name = line[0].toString()
                 val stack = ArrayDeque(line.subList(1).trimEnd(' '))
                 name to stack
