@@ -5,7 +5,7 @@ import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.parserFor
-import cz.judas.jan.advent.recursiveCached
+import cz.judas.jan.advent.recursive
 import cz.judas.jan.advent.subList
 import cz.judas.jan.advent.times
 
@@ -16,7 +16,7 @@ object Day12 {
     fun part1(input: InputData): Long {
         return input.lines()
             .map(rowParser::parse)
-            .sumOf { (springs, checksum) -> recursiveCached(checksum, "${springs}.", ::count) }
+            .sumOf { (springs, checksum) -> recursive(checksum, "${springs}.", cached = false, ::count) }
     }
 
     @Answer("527570479489")
@@ -26,7 +26,7 @@ object Day12 {
             .sumOf { row ->
                 val springs = List(5) { row.springs }.joinToString("?") + "."
                 val checksum = row.checksum * 5
-                recursiveCached(checksum, springs, ::count)
+                recursive(checksum, springs, cached = true, ::count)
             }
     }
 

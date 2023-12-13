@@ -24,26 +24,30 @@ fun Range<Long>.length(): Long {
 }
 
 
-fun <I1, I2, O> recursiveCached(input1: I1, input2: I2, calculation: (I1, I2, (I1, I2) -> O) -> O): O {
-    return recursiveCached(Pair(input1, input2)) { (next1, next2), recursion ->
+fun <I1, I2, O> recursive(input1: I1, input2: I2, cached: Boolean = false, calculation: (I1, I2, (I1, I2) -> O) -> O): O {
+    return recursive(Pair(input1, input2), cached) { (next1, next2), recursion ->
         calculation(next1, next2) { rec1, rec2 ->
             recursion(Pair(rec1, rec2))
         }
     }
 }
 
-fun <I, O> recursiveCached(input: I, calculation: (I, (I) -> O) -> O): O {
+fun <I, O> recursive(input: I, cached: Boolean = false, calculation: (I, (I) -> O) -> O): O {
     val cache = mutableMapOf<I, O>()
     val recursiveHolder = AtomicReference<(I) -> O>()
-    recursiveHolder.set { key ->
-        val cached = cache.get(key)
-        if (cached === null) {
-            val computed = calculation(key, recursiveHolder.get())
-            cache.put(key, computed)
-            computed
-        } else {
-            cached
+    if (cached) {
+        recursiveHolder.set { key ->
+            val cachedValue = cache.get(key)
+            if (cachedValue === null) {
+                val computedValue = calculation(key, recursiveHolder.get())
+                cache.put(key, computedValue)
+                computedValue
+            } else {
+                cachedValue
+            }
         }
+    } else {
+        recursiveHolder.set { key -> calculation(key, recursiveHolder.get()) }
     }
     return calculation(input, recursiveHolder.get())
 }
