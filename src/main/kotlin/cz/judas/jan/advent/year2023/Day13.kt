@@ -11,52 +11,31 @@ object Day13 {
     fun part1(input: InputData): Int {
         return input.lines()
             .splitOn { it.isEmpty() }
-            .sumOf { patternChars ->
-                val pattern = TwoDimensionalArray.charsFromLines(patternChars)
-                val (horizontalLines, verticalLines) = reflectionLines(pattern)
-                horizontalLines.sumOf { (it + 1) * 100 } + verticalLines.sumOf { it + 1 }
-            }
+            .sumOf { score(TwoDimensionalArray.charsFromLines(it), 0) }
     }
 
     @Answer("32192")
     fun part2(input: InputData): Int {
         return input.lines()
             .splitOn { it.isEmpty() }
-            .sumOf { patternChars ->
-                val pattern = TwoDimensionalArray.charsFromLines(patternChars)
-                val (horizontalLines, verticalLines) = reflectionLines(pattern)
-                pattern.rowIndices().sumOf { modifiedRow ->
-                    pattern.columnIndices().sumOf { modifiedColumn ->
-                        val modifiedPattern = pattern.mapIndexed { row, column, value ->
-                            if (row == modifiedRow && column == modifiedColumn) {
-                                if (value == '.') '#' else '.'
-                            } else {
-                                value
-                            }
-                        }
-                        val (modifiedHorizontalLines, modifiedVerticalLines) = reflectionLines(modifiedPattern)
-                        val differentHorizontalLines = modifiedHorizontalLines - horizontalLines
-                        val differentVerticalLines = modifiedVerticalLines - verticalLines
-                        differentHorizontalLines.sumOf { (it + 1) * 100 } + differentVerticalLines.sumOf { it + 1 }
-                    }
-                }
-            } / 2
+            .sumOf { score(TwoDimensionalArray.charsFromLines(it), 1) }
     }
 
-    private fun reflectionLines(pattern: TwoDimensionalArray<Char>): Pair<Set<Int>, Set<Int>> {
-        return Pair(
-            horizontalReflectionLines(pattern),
-            horizontalReflectionLines(pattern.transpose())
-        )
+    private fun score(pattern: TwoDimensionalArray<Char>, diff: Int): Int {
+        return horizontalScore(pattern, diff) * 100 + horizontalScore(pattern.transpose(), diff)
     }
 
-    private fun horizontalReflectionLines(pattern: TwoDimensionalArray<Char>): Set<Int> {
+    private fun horizontalScore(pattern: TwoDimensionalArray<Char>, diff: Int): Int {
         return pattern.rowIndices().filter { rowIndex ->
-            rowIndex + 1 < pattern.numRows
-                    && (0..(min(rowIndex, pattern.numRows - rowIndex - 2)))
-                .all { offset ->
-                    pattern.row(rowIndex + 1 + offset).toList() == pattern.row(rowIndex - offset).toList()
-                }
-        }.toSet()
+            val remainingRowCount = pattern.numRows - 1 - rowIndex
+            val mirroredRowCount = min(rowIndex, remainingRowCount - 1)
+            remainingRowCount > 0 && (0..mirroredRowCount).sumOf { rowMirrorDiff(pattern, rowIndex, it) } == diff
+        }.sumOf { (it + 1) }
+    }
+
+    private fun rowMirrorDiff(pattern: TwoDimensionalArray<Char>, rowIndex: Int, offset: Int): Int {
+        return pattern.row(rowIndex + 1 + offset)
+            .zip(pattern.row(rowIndex - offset))
+            .count { it.first != it.second }
     }
 }
