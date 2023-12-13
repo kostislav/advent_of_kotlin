@@ -44,18 +44,19 @@ object Day13 {
     }
 
     private fun reflectionLines(pattern: TwoDimensionalArray<Char>): Pair<Set<Int>, Set<Int>> {
-        val horizontalLines = pattern.rowIndices().filter { rowIndex ->
-                rowIndex + 1 < pattern.numRows
-                && (0..(min(rowIndex, pattern.numRows - rowIndex - 2)))
-                    .all { offset -> pattern.row(rowIndex + 1 + offset).toList() == pattern.row(rowIndex - offset).toList() }
-        }.toSet()
+        return Pair(
+            horizontalReflectionLines(pattern),
+            horizontalReflectionLines(pattern.transpose())
+        )
+    }
 
-        val verticalLines = pattern.columnIndices().filter { columnIndex ->
-                columnIndex + 1 < pattern.numColumns
-                && (0..(min(columnIndex, pattern.numColumns - columnIndex - 2)))
-                    .all { offset -> pattern.column(columnIndex + 1 + offset).toList() == pattern.column(columnIndex - offset).toList() }
+    private fun horizontalReflectionLines(pattern: TwoDimensionalArray<Char>): Set<Int> {
+        return pattern.rowIndices().filter { rowIndex ->
+            rowIndex + 1 < pattern.numRows
+                    && (0..(min(rowIndex, pattern.numRows - rowIndex - 2)))
+                .all { offset ->
+                    pattern.row(rowIndex + 1 + offset).toList() == pattern.row(rowIndex - offset).toList()
+                }
         }.toSet()
-
-        return Pair(horizontalLines, verticalLines)
     }
 }

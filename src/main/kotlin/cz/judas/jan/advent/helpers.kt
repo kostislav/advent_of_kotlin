@@ -45,7 +45,11 @@ class TwoDimensionalArray<out T>(
     }
 
     fun rotateRight(): TwoDimensionalArray<T> {
-        return TwoDimensionalArray(numColumns, numRows) { i, j -> get(numRows - 1 - j, i) }
+        return TwoDimensionalArray(numColumns, numRows) { row, column -> get(numRows - 1 - column, row) }
+    }
+
+    fun transpose(): TwoDimensionalArray<T> {
+        return TwoDimensionalArray(numColumns, numRows) { row, column -> get(column, row)}
     }
 
     fun row(index: Int): Sequence<T> {
