@@ -2,6 +2,7 @@ package cz.judas.jan.advent
 
 import com.google.common.collect.BoundType
 import com.google.common.collect.Range
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -20,6 +21,31 @@ fun Range<Double>.enclosedLongRange(): Range<Long> {
 
 fun Range<Long>.length(): Long {
     return upperEndpoint() - lowerEndpoint() + 1
+}
+
+
+fun <I1, I2, O> recursiveCached(input1: I1, input2: I2, calculation: (I1, I2, (I1, I2) -> O) -> O): O {
+    return recursiveCached(Pair(input1, input2)) { (next1, next2), recursion ->
+        calculation(next1, next2) { rec1, rec2 ->
+            recursion(Pair(rec1, rec2))
+        }
+    }
+}
+
+fun <I, O> recursiveCached(input: I, calculation: (I, (I) -> O) -> O): O {
+    val cache = mutableMapOf<I, O>()
+    val recursiveHolder = AtomicReference<(I) -> O>()
+    recursiveHolder.set { key ->
+        val cached = cache.get(key)
+        if (cached === null) {
+            val computed = calculation(key, recursiveHolder.get())
+            cache.put(key, computed)
+            computed
+        } else {
+            cached
+        }
+    }
+    return calculation(input, recursiveHolder.get())
 }
 
 
