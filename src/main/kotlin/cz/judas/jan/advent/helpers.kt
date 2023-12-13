@@ -52,6 +52,12 @@ class TwoDimensionalArray<out T> private constructor(private val items: List<Lis
         return items[index]
     }
 
+    fun column(index: Int): Sequence<T> {
+        return rowIndices()
+            .asSequence()
+            .map { rowIndex -> get(rowIndex, index) }
+    }
+
     fun <O> map(transformation: (T) -> O): TwoDimensionalArray<O> {
         return TwoDimensionalArray(items.map { it.map(transformation) })
     }
