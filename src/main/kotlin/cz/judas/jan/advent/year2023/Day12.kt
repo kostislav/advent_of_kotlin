@@ -31,29 +31,28 @@ object Day12 {
     }
 
     private fun count(remainingGroupSizes: List<Int>, remainingSprings: String, recursion: (List<Int>, String) -> Long): Long {
-        if (remainingGroupSizes.isEmpty()) {
-            return if (remainingSprings.none { it == '#' }) 1L else 0L
-        } else {
-            val groupSize = remainingGroupSizes[0]
-            var sum = 0L
-            for (i in 0..(remainingSprings.length - remainingGroupSizes.sum() - remainingGroupSizes.size)) {
-                if (remainingSprings[i] == '#' || remainingSprings[i] == '?') {
-                    if (
-                        (0..<groupSize).all { remainingSprings[i + it] == '#' || remainingSprings[i + it] == '?' }
-                        && (remainingSprings[i + groupSize] == '.' || remainingSprings[i + groupSize] == '?')
-                    ) {
-                        sum += recursion(
-                            remainingGroupSizes.subList(1),
-                            remainingSprings.substring(i + groupSize + 1)
-                        )
-                    }
-                }
-                if (remainingSprings[i] == '#') {
-                    break
-                }
+        val groupSize = remainingGroupSizes[0]
+        val thisSpring = remainingSprings[0]
+        val withGroupStartingHere = if ((thisSpring == '#' || thisSpring == '?') && matches(remainingSprings, groupSize)) {
+            if (remainingGroupSizes.size == 1) {
+                if (remainingSprings.substring(groupSize + 1).none { it == '#' }) 1L else 0L
+            } else {
+                recursion(remainingGroupSizes.subList(1), remainingSprings.substring(groupSize + 1))
             }
-            return sum
+        } else {
+            0L
         }
+        val withGroupNotStartingHere = if ((thisSpring == '.' || thisSpring == '?') && remainingSprings.length > remainingGroupSizes.sum() + remainingGroupSizes.size) {
+            recursion(remainingGroupSizes, remainingSprings.substring(1))
+        } else {
+            0L
+        }
+        return withGroupStartingHere + withGroupNotStartingHere
+    }
+
+    private fun matches(remainingSprings: String, groupSize: Int): Boolean {
+        return (0..<groupSize).all { remainingSprings[it] == '#' || remainingSprings[it] == '?' }
+                && (remainingSprings[groupSize] == '.' || remainingSprings[groupSize] == '?')
     }
 
     @Pattern("([^ ]+) (.+)")
