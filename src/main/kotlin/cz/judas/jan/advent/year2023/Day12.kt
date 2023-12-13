@@ -1,5 +1,6 @@
 package cz.judas.jan.advent.year2023
 
+import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
@@ -10,37 +11,23 @@ import cz.judas.jan.advent.times
 object Day12 {
     private val rowParser = parserFor<Row>()
 
-    fun part1(input: InputData): Int {
+    @Answer("7017")
+    fun part1(input: InputData): Long {
         return input.lines()
             .map(rowParser::parse)
             .sumOf { (springs, checksum) ->
-                val numBroken = springs.count { it =='?' }
-                val missingSprings = checksum.sum() - springs.count { it == '#' }
-                val powerSet = 1 shl numBroken
-                (0..<powerSet).asSequence()
-                    .filter { it.countOneBits() == missingSprings && matches(springs, checksum, it) }
-                    .count()
+                count(checksum, "${springs}.", checksum.sum() + checksum.size, mutableMapOf())
             }
     }
 
+    @Answer("527570479489")
     fun part2(input: InputData): Long {
         return input.lines()
             .map(rowParser::parse)
             .sumOf { row ->
-                val springs = buildList {
-                    addAll(row.springs)
-                    add('?')
-                    addAll(row.springs)
-                    add('?')
-                    addAll(row.springs)
-                    add('?')
-                    addAll(row.springs)
-                    add('?')
-                    addAll(row.springs)
-                    add('.')
-                }
+                val springs = List(5) { row.springs}.joinToString("?") + "."
                 val checksum = row.checksum * 5
-                count(checksum, springs.joinToString(""), checksum.sum() + checksum.size, mutableMapOf())
+                count(checksum, springs, checksum.sum() + checksum.size, mutableMapOf())
             }
     }
 
@@ -77,37 +64,9 @@ object Day12 {
         }
     }
 
-
-    private fun matches(springs: List<Char>, checksum: List<Int>, combination: Int): Boolean {
-        val checksumIterator = checksum.iterator()
-        var currentGroupLength = 0
-        var brokenSpringIndex = 1
-        for (spring in springs) {
-            val realSpring = if (spring == '?') {
-                val replacement = if (combination and brokenSpringIndex != 0) '#' else '.'
-                brokenSpringIndex = brokenSpringIndex shl 1
-                replacement
-            } else {
-                spring
-            }
-
-            if (realSpring == '#') {
-                currentGroupLength += 1
-            } else if (currentGroupLength > 0) {
-                if (checksumIterator.hasNext() && currentGroupLength == checksumIterator.next()) {
-                    currentGroupLength = 0
-                } else {
-                    return false
-                }
-            }
-        }
-        return (currentGroupLength == 0 && !checksumIterator.hasNext()) || checksumIterator.next() == currentGroupLength
-    }
-
-
     @Pattern("([^ ]+) (.+)")
     data class Row(
-        val springs: List<Char>,
+        val springs: String,
         val checksum: @SplitOn(",") List<Int>
     )
 }
