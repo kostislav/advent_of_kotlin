@@ -75,7 +75,11 @@ class TwoDimensionalArray<out T>(
     }
 
     fun rotateRight(): TwoDimensionalArray<T> {
-        return TwoDimensionalArray(numColumns, numRows) { row, column -> get(numRows - 1 - column, row) }
+        return TwoDimensionalArray(numColumns, numRows) { row, column -> get(numColumns - 1 - column, row) }
+    }
+
+    fun rotateLeft(): TwoDimensionalArray<T> {
+        return TwoDimensionalArray(numColumns, numRows) { row, column -> get(column, numRows - 1 - row) }
     }
 
     fun transpose(): TwoDimensionalArray<T> {
