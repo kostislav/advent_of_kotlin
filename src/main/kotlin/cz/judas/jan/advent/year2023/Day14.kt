@@ -1,12 +1,13 @@
 package cz.judas.jan.advent.year2023
 
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.Mutable2dArray
 import cz.judas.jan.advent.TwoDimensionalArray
 
 object Day14 {
     fun part1(input: InputData): Int {
         val platform = TwoDimensionalArray.charsFromLines(input.lines())
-        val debug = Day10.Mutable2dArray(platform.numRows, platform.numColumns, '.')
+        val debug = Mutable2dArray(platform.numRows, platform.numColumns, '.')
         return platform.columnIndices()
             .sumOf { column ->
                 var total = 0
@@ -61,7 +62,7 @@ object Day14 {
     }
 
     private fun TwoDimensionalArray<Char>.tilt(): TwoDimensionalArray<Char> {
-        val tilted = Day10.Mutable2dArray(numRows, numColumns, '.')
+        val tilted = Mutable2dArray(numRows, numColumns, '.')
         columnIndices()
             .forEach { column ->
                 var current = numRows
