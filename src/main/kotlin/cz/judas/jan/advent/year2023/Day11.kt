@@ -3,6 +3,7 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
+import cz.judas.jan.advent.Vector2d
 import cz.judas.jan.advent.cartesianProduct
 
 object Day11 {
@@ -28,7 +29,7 @@ object Day11 {
         val galaxies = image.entries()
             .filter { (_, value) -> value == '#' }
             .map { (position, _) ->
-                position + Pair(
+                position + Vector2d(
                     emptyRows.headSet(position.row).size * toAdd,
                     emptyColumns.headSet(position.column).size * toAdd
                 )

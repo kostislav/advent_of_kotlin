@@ -27,10 +27,10 @@ object Day2 {
 
     private fun move(current: Vector2d, direction: Char): Vector2d {
         return when(direction) {
-            'U' -> if (current.y < 2) current.copy(y = current.y + 1) else current
-            'D' -> if (current.y > 0) current.copy(y = current.y - 1) else current
-            'L' -> if (current.x > 0) current.copy(x = current.x - 1) else current
-            'R' -> if (current.x < 2) current.copy(x = current.x + 1) else current
+            'U' -> if (current.columns < 2) current.copy(columns = current.columns + 1) else current
+            'D' -> if (current.columns > 0) current.copy(columns = current.columns - 1) else current
+            'L' -> if (current.rows > 0) current.copy(rows = current.rows - 1) else current
+            'R' -> if (current.rows < 2) current.copy(rows = current.rows + 1) else current
             else -> throw RuntimeException("Unexpected direction ${direction}")
         }
     }

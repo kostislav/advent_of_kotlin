@@ -52,7 +52,15 @@ fun <I, O> recursive(input: I, cached: Boolean = false, calculation: (I, (I) -> 
 }
 
 
-data class Vector2d(val x: Int, val y: Int)
+data class Vector2d(val rows: Int, val columns: Int) {
+    fun rotateRight(): Vector2d {
+        return Vector2d(columns, -rows)
+    }
+
+    fun dotProduct(other: Vector2d): Int {
+        return rows * other.rows + columns * other.columns
+    }
+}
 
 enum class Digit {
     ZERO,

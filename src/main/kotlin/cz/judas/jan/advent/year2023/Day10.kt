@@ -3,159 +3,52 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.InputData
-import cz.judas.jan.advent.Mutable2dArray
 import cz.judas.jan.advent.TwoDimensionalArray
+import cz.judas.jan.advent.Vector2d
+import cz.judas.jan.advent.cycle
+import cz.judas.jan.advent.takeWhileIndexed
 
 object Day10 {
     @Answer("6842")
     fun part1(input: InputData): Int {
-        val (diagram, startingPosition) = loadDiagram(input)
-
-        val steps = generateSequence(Step(startingPosition, diagram[startingPosition].first())) { step ->
-            val nextPosition = step.nextPosition()
-            val nextDirection = diagram[nextPosition].first { it != step.direction.inverse() }
-            Step(nextPosition, nextDirection)
-        }
-        val length = steps.drop(1).takeWhile { it.position != startingPosition }.count()
-        return (length + 1) / 2
+        val steps = findPath(input)
+        return steps.count() / 2
     }
 
     @Answer("393")
     fun part2(input: InputData): Int {
-        val (diagram, startingPosition) = loadDiagram(input)
+        val steps = findPath(input)
+        val orientation = steps.cycle()
+            .windowed(2) { it[0].direction.movement.rotateRight().dotProduct(it[1].direction.movement) }
+            .take(steps.size)
+            .sum()
+        val positiveDirection = if (orientation > 0) Direction.LEFT else Direction.RIGHT
+        val negativeDirection = positiveDirection.inverse()
+        val positiveCombinations = setOf(
+            Pair(positiveDirection, positiveDirection),
+            Pair(Direction.UP, positiveDirection),
+            Pair(positiveDirection, Direction.DOWN)
+        )
+        val negativeCombinations = setOf(
+            Pair(negativeDirection, negativeDirection),
+            Pair(Direction.DOWN, negativeDirection),
+            Pair(negativeDirection, Direction.UP)
+        )
 
-        val startingDirections = diagram[startingPosition]
-        val analyzed = Mutable2dArray<FieldType?>(diagram.numRows, diagram.numColumns, null)
-        var currentDirection = startingDirections.first()
-        var currentPosition = startingPosition + currentDirection.movement
-        var rightBias = 0
-        while (currentPosition != startingPosition) {
-            val previousDirection = currentDirection
-            currentDirection = diagram[currentPosition]
-                .first { it != currentDirection.inverse() }
-
-            when (previousDirection) {
-                Direction.UP ->
-                    when (currentDirection) {
-                        Direction.UP -> {
-                            updateField(analyzed, currentPosition, 0, -1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 0, 1, FieldType.RIGH)
-                        }
-
-                        Direction.RIGHT -> {
-                            updateField(analyzed, currentPosition, 0, -1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, -1, -1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, -1, 0, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, +1, 1, FieldType.RIGH)
-                            rightBias += 1
-                        }
-
-                        Direction.LEFT -> {
-                            updateField(analyzed, currentPosition, 0, 1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, 1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, 0, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, -1, FieldType.LEFT)
-                            rightBias -= 1
-                        }
-
-                        else -> {}
-                    }
-
-                Direction.DOWN -> {
-                    when (currentDirection) {
-                        Direction.DOWN -> {
-                            updateField(analyzed, currentPosition, 0, 1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 0, -1, FieldType.RIGH)
-                        }
-
-                        Direction.RIGHT -> {
-                            updateField(analyzed, currentPosition, 0, -1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, -1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, 0, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, 1, FieldType.LEFT)
-                            rightBias -= 1
-                        }
-
-                        Direction.LEFT -> {
-                            updateField(analyzed, currentPosition, -1, -1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, 0, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 1, 1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 0, 1, FieldType.LEFT)
-                            rightBias += 1
-                        }
-
-                        else -> {}
-                    }
-                }
-
-                Direction.LEFT -> {
-                    when (currentDirection) {
-                        Direction.LEFT -> {
-                            updateField(analyzed, currentPosition, -1, 0, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, 0, FieldType.LEFT)
-                        }
-
-                        Direction.UP -> {
-                            updateField(analyzed, currentPosition, -1, 1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, 0, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 1, -1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 0, -1, FieldType.LEFT)
-                            rightBias += 1
-                        }
-
-                        Direction.DOWN -> {
-                            updateField(analyzed, currentPosition, -1, 0, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, -1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 0, -1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, 1, FieldType.LEFT)
-                            rightBias -= 1
-                        }
-
-                        else -> {}
-                    }
-                }
-
-                Direction.RIGHT -> {
-                    when (currentDirection) {
-                        Direction.RIGHT -> {
-                            updateField(analyzed, currentPosition, 1, 0, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, 0, FieldType.LEFT)
-                        }
-
-                        Direction.UP -> {
-                            updateField(analyzed, currentPosition, 1, 0, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 1, 1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, 0, 1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, -1, FieldType.LEFT)
-                            rightBias -= 1
-                        }
-
-                        Direction.DOWN -> {
-                            updateField(analyzed, currentPosition, 1, -1, FieldType.RIGH)
-                            updateField(analyzed, currentPosition, -1, 0, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, -1, 1, FieldType.LEFT)
-                            updateField(analyzed, currentPosition, 0, 1, FieldType.LEFT)
-                            rightBias += 1
-                        }
-
-                        else -> {}
-                    }
+        return steps.cycle()
+            .windowed(2) {
+                val directions = Pair(it[0].direction, it[1].direction)
+                when (directions) {
+                    in positiveCombinations -> it[1].position.row
+                    in negativeCombinations -> -it[1].position.row - 1
+                    else -> 0
                 }
             }
-
-            currentPosition += currentDirection.movement
-            analyzed.set(currentPosition.row, currentPosition.column, FieldType.LOOP)
-        }
-        val lookingFor = if (rightBias > 0) FieldType.RIGH else FieldType.LEFT
-        analyzed.forEach { row, column, value ->
-            if (value == lookingFor) {
-                analyzed.floodFill(Pair(row, column), lookingFor)
-            }
-        }
-        return analyzed.count { it == lookingFor }
+            .take(steps.size)
+            .sum()
     }
 
-    private fun loadDiagram(input: InputData): Pair<TwoDimensionalArray<Set<Direction>>, Coordinate> {
+    private fun findPath(input: InputData): List<Step> {
         val pipeTypes = mapOf(
             '-' to setOf(Direction.LEFT, Direction.RIGHT),
             '|' to setOf(Direction.UP, Direction.DOWN),
@@ -177,30 +70,21 @@ object Day10 {
             }
             .toSet()
 
-        return Pair(
-            diagram.map {
-                if (it == 'S') {
-                    startingDirections
-                } else {
-                    pipeTypes[it] ?: emptySet()
-                }
-            },
-            startingPosition
-        )
-    }
-
-    private fun updateField(
-        field: Mutable2dArray<FieldType?>,
-        currentPosition: Coordinate,
-        rowOffset: Int,
-        columnOffset: Int,
-        value: FieldType
-    ) {
-        val targetRow = currentPosition.row + rowOffset
-        val targetColumn = currentPosition.column + columnOffset
-        if (field.getSafe(targetRow, targetColumn) != FieldType.LOOP) {
-            field.setSafe(targetRow, targetColumn, value)
+        val fixedDiagram = diagram.map {
+            if (it == 'S') {
+                startingDirections
+            } else {
+                pipeTypes[it] ?: emptySet()
+            }
         }
+
+        return generateSequence(Step(startingPosition, fixedDiagram[startingPosition].first())) { step ->
+            val nextPosition = step.nextPosition()
+            val nextDirection = fixedDiagram[nextPosition].first { it != step.direction.inverse() }
+            Step(nextPosition, nextDirection)
+        }
+            .takeWhileIndexed { i, step -> i == 0 || step.position != startingPosition }
+            .toList()
     }
 
     data class Step(
@@ -212,11 +96,11 @@ object Day10 {
         }
     }
 
-    enum class Direction(val movement: Pair<Int, Int>) {
-        UP(Pair(-1, 0)),
-        DOWN(Pair(1, 0)),
-        LEFT(Pair(0, -1)),
-        RIGHT(Pair(0, 1));
+    enum class Direction(val movement: Vector2d) {
+        UP(Vector2d(-1, 0)),
+        DOWN(Vector2d(1, 0)),
+        LEFT(Vector2d(0, -1)),
+        RIGHT(Vector2d(0, 1));
 
         fun inverse(): Direction {
             return when (this) {
@@ -227,9 +111,4 @@ object Day10 {
             }
         }
     }
-
-    enum class FieldType {
-        LOOP, LEFT, RIGH  /* TODO */
-    }
-
 }

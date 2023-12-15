@@ -201,6 +201,10 @@ fun <T> List<T>.cycle(): Sequence<T> {
     return generateSequence(this) { this }.flatten()
 }
 
+fun <T> Sequence<T>.cycle(): Sequence<T> {
+    return generateSequence(this) { this }.flatten()
+}
+
 fun Iterable<Long>.leastCommonMultiple(): Long {
     val iterator = iterator()
     return iterator.fold(iterator.next()) { soFar, current -> ArithmeticUtils.lcm(soFar, current) }
@@ -210,6 +214,12 @@ operator fun <T> List<T>.times(count: Int): List<T> = List(count) { this }.flatt
 
 fun <T> Iterable<T>.sumOfInt(selector: (T) -> Int): Int {
     return sumOf(selector)
+}
+
+fun <T> Sequence<T>.takeWhileIndexed(predicate: (index: Int, T) -> Boolean): Sequence<T> {
+    return mapIndexed{ i, value -> Pair(i, value) }
+        .takeWhile { predicate(it.first, it.second) }
+        .map { it.second }
 }
 
 class LexicographicalListComparator<T>(

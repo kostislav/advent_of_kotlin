@@ -81,5 +81,6 @@ class Day10Test {
 
             assertThat(Day10.part2(input), equalTo(10))
         }
+
     }
 }

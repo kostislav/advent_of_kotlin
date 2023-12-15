@@ -109,8 +109,8 @@ class TwoDimensionalArray<out T>(
 }
 
 data class Coordinate(val row: Int, val column: Int) {
-    operator fun plus(delta: Pair<Int, Int>): Coordinate {
-        return Coordinate(row + delta.first, column + delta.second)
+    operator fun plus(delta: Vector2d): Coordinate {
+        return Coordinate(row + delta.rows, column + delta.columns)
     }
 
     fun manhattanDistance(other: Coordinate): Int {
