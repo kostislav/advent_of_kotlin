@@ -10,7 +10,6 @@ import com.google.common.collect.Multiset
 import com.google.common.collect.Ordering
 import org.apache.commons.math3.util.ArithmeticUtils
 import java.util.*
-import kotlin.Comparator
 
 
 fun <T : Comparable<T>> List<T>.maxN(howMany: Int): List<T> {
@@ -178,7 +177,7 @@ fun <T> Iterable<T>.associateToIndex(startIndex: Int = 0): Map<T, Int> {
     return mapIndexedFrom(startIndex) { i, item -> item to i }.toMap()
 }
 
-fun <T: Any> unfold(initial: T, next: (T) -> T?): List<T> {
+fun <T : Any> unfold(initial: T, next: (T) -> T?): List<T> {
     val result = mutableListOf<T>()
     var current: T? = initial
     while (current !== null) {
@@ -209,9 +208,13 @@ fun Iterable<Long>.leastCommonMultiple(): Long {
 
 operator fun <T> List<T>.times(count: Int): List<T> = List(count) { this }.flatten()
 
+fun <T> Iterable<T>.sumOfInt(selector: (T) -> Int): Int {
+    return sumOf(selector)
+}
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
-): Comparator<List<T>> {
+) : Comparator<List<T>> {
     override fun compare(list1: List<T>, list2: List<T>): Int {
         for (i in list1.indices) {
             val itemResult = itemComparator.compare(list1[i], list2[i])
@@ -223,8 +226,28 @@ class LexicographicalListComparator<T>(
     }
 
     companion object {
-        fun <T: Comparable<T>> natural(): LexicographicalListComparator<T> {
+        fun <T : Comparable<T>> natural(): LexicographicalListComparator<T> {
             return LexicographicalListComparator(Comparator.naturalOrder())
         }
     }
+}
+
+class MutableMapWithDefault<K, V>(
+    backing: MutableMap<K, V>,
+    private val defaultValue: (K) -> V
+) : MutableMap<K, V> by backing {
+    fun getOrCreate(key: K): V {
+        val value = get(key)
+        return if (value === null) {
+            val newValue = defaultValue(key)
+            put(key, newValue)
+            newValue
+        } else {
+            value
+        }
+    }
+}
+
+fun <K, V> mutableMapWithDefault(defaultValue: (K) -> V): MutableMapWithDefault<K, V> {
+    return MutableMapWithDefault(mutableMapOf(), defaultValue)
 }
