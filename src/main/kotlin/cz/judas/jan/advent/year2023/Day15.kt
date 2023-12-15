@@ -28,9 +28,10 @@ object Day15 {
                     boxes.getOrCreate(hash(label)) -= label
                 }
             }
-        return boxes.map { (box, lenses) ->
-            (box + 1L) * lenses.entries.mapIndexed { i, (_, lens) -> (i + 1) * lens }.sum()
-        }
+        return boxes
+            .map { (box, lenses) ->
+                (box + 1L) * lenses.values.mapIndexed { i, lens -> (i + 1) * lens }.sum()
+            }
             .sum()
     }
 
