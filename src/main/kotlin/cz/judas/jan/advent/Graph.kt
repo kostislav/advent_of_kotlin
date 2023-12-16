@@ -27,3 +27,19 @@ class UndirectedGraph<T>(private val edges: HashMultimap<T, T>) {
         fun <T> builder(): Builder<T> = Builder()
     }
 }
+
+enum class Direction(val movement: Vector2d) {
+    UP(Vector2d(-1, 0)),
+    DOWN(Vector2d(1, 0)),
+    LEFT(Vector2d(0, -1)),
+    RIGHT(Vector2d(0, 1));
+
+    fun inverse(): Direction {
+        return when (this) {
+            UP -> DOWN
+            DOWN -> UP
+            LEFT -> RIGHT
+            RIGHT -> LEFT
+        }
+    }
+}

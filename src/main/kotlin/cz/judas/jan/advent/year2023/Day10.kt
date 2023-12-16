@@ -2,9 +2,9 @@ package cz.judas.jan.advent.year2023
 
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.Coordinate
+import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
-import cz.judas.jan.advent.Vector2d
 import cz.judas.jan.advent.cycle
 import cz.judas.jan.advent.takeWhileIndexed
 
@@ -96,19 +96,4 @@ object Day10 {
         }
     }
 
-    enum class Direction(val movement: Vector2d) {
-        UP(Vector2d(-1, 0)),
-        DOWN(Vector2d(1, 0)),
-        LEFT(Vector2d(0, -1)),
-        RIGHT(Vector2d(0, 1));
-
-        fun inverse(): Direction {
-            return when (this) {
-                UP -> DOWN
-                DOWN -> UP
-                LEFT -> RIGHT
-                RIGHT -> LEFT
-            }
-        }
-    }
 }
