@@ -37,7 +37,19 @@ object Day17 {
                     emptyMap()
                 }
             } else {
-                current.next(minStraight, maxStraight)
+                buildMap {
+                    if (current.steps >= minStraight) {
+                        put(RelativeDirection.LEFT, 1)
+                        put(RelativeDirection.RIGHT, 1)
+                    }
+                    if (current.steps < maxStraight) {
+                        put(RelativeDirection.FORWARD, current.steps + 1)
+                    }
+                }
+                    .map { (relativeDirection, nextSteps) ->
+                        val nextDirection = current.direction.move(relativeDirection)
+                        Hypercoordinate(current.position + nextDirection.movement, nextDirection, nextSteps)
+                    }
                     .filter { city.isInside(it.position) }
                     .associateWith { city[it.position] }
                     .toMap()
@@ -49,20 +61,5 @@ object Day17 {
         val position: Coordinate,
         val direction: Direction,
         val steps: Int
-    ) {
-        fun next(minStraight: Int, maxStraight: Int): List<Hypercoordinate> {
-            val result = mutableMapOf<RelativeDirection, Int>()
-            if (steps >= minStraight) {
-                result[RelativeDirection.LEFT] = 1
-                result[RelativeDirection.RIGHT] = 1
-            }
-            if (steps < maxStraight) {
-                result[RelativeDirection.FORWARD] = steps + 1
-            }
-            return result.map { (relativeDirection, nextSteps) ->
-                val nextDirection = direction.move(relativeDirection)
-                Hypercoordinate(position + nextDirection.movement, nextDirection, nextSteps)
-            }
-        }
-    }
+    )
 }
