@@ -20,30 +20,24 @@ object Day17 {
 
     private fun calculate(input: InputData, minStraight: Int, maxStraight: Int): Int {
         val city = TwoDimensionalArray.charsFromLines(input.lines()).map { it.digitToInt() }.materialized()
-        val best = mutableMapOf<Hypercoordinate, Int>()
-        val backlog = ArrayDeque<Hypercoordinate>()
-        backlog += Hypercoordinate(Coordinate(0, 0), Direction.RIGHT, 1)
-        backlog += Hypercoordinate(Coordinate(0, 0), Direction.DOWN, 1)
-        best[Hypercoordinate(Coordinate(0, 0), Direction.RIGHT, 1)] = 0
-        best[Hypercoordinate(Coordinate(0, 0), Direction.DOWN, 1)] = 0
-
-        while (backlog.isNotEmpty()) {
-            val current = backlog.removeFirst()
-            val currentLoss = best.getValue(current)
-            for (next in current.next(minStraight, maxStraight)) {
-                if(city.isInside(next.position)) {
-                    val heatLoss = currentLoss + city[next.position]
-                    val nextLoss = best[next]
-                    if (nextLoss === null || nextLoss > heatLoss) {
-                        best[next] = heatLoss
-                        backlog += next
-                    }
-                }
+        val virtualStartingNode = Hypercoordinate(Coordinate(-1, -1), Direction.LEFT, 0)
+        val targetPosition = Coordinate(city.numRows - 1, city.numColumns - 1)
+        val virtualTargetNode = Hypercoordinate(Coordinate(city.numRows, city.numColumns), Direction.RIGHT, 0)
+        return shortestPath(virtualStartingNode, virtualTargetNode) { current ->
+            if (current == virtualStartingNode) {
+                mapOf(
+                    Hypercoordinate(Coordinate(0, 0), Direction.RIGHT, 1) to 0,
+                    Hypercoordinate(Coordinate(0, 0), Direction.DOWN, 1) to 0
+                )
+            } else if (current.position == targetPosition) {
+                mapOf(virtualTargetNode to 0)
+            } else {
+                current.next(minStraight, maxStraight)
+                    .filter { city.isInside(it.position) }
+                    .associateWith { city[it.position] }
+                    .toMap()
             }
         }
-        return best.filterKeys { it.position == Coordinate(city.numRows - 1, city.numColumns - 1) }
-            .values
-            .min()
     }
 
     data class Hypercoordinate(
@@ -60,11 +54,31 @@ object Day17 {
             if (steps < maxStraight) {
                 result[RelativeDirection.FORWARD] = steps + 1
             }
-            return result.map {
-                (relativeDirection, nextSteps) ->
+            return result.map { (relativeDirection, nextSteps) ->
                 val nextDirection = direction.move(relativeDirection)
                 Hypercoordinate(position + nextDirection.movement, nextDirection, nextSteps)
             }
         }
+    }
+
+    fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N, Int>): Int {
+        val best = mutableMapOf<N, Int>()
+        val backlog = ArrayDeque<N>()
+        backlog += startingNode
+        best[startingNode] = 0
+
+        while (backlog.isNotEmpty()) {
+            val current = backlog.removeFirst()
+            val currentLength = best.getValue(current)
+            for ((next, weight) in edgeSupplier(current)) {
+                val heatLoss = currentLength + weight
+                val nextLength = best[next]
+                if (nextLength === null || nextLength > heatLoss) {
+                    best[next] = heatLoss
+                    backlog += next
+                }
+            }
+        }
+        return best.getValue(targetNode)
     }
 }
