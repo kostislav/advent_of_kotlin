@@ -31,7 +31,11 @@ object Day17 {
                     Hypercoordinate(Coordinate(0, 0), Direction.DOWN, 1) to 0
                 )
             } else if (current.position == targetPosition) {
-                mapOf(virtualTargetNode to 0)
+                if (current.steps >= minStraight) {
+                    mapOf(virtualTargetNode to 0)
+                } else {
+                    emptyMap()
+                }
             } else {
                 current.next(minStraight, maxStraight)
                     .filter { city.isInside(it.position) }

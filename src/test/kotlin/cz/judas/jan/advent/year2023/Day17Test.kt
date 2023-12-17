@@ -3,6 +3,7 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.InputData
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class Day17Test {
@@ -29,8 +30,26 @@ class Day17Test {
         assertThat(Day17.part1(input), equalTo(102))
     }
 
-    @Test
-    fun part2() {
-        assertThat(Day17.part2(input), equalTo(94))
+    @Nested
+    inner class Part2 {
+        @Test
+        fun exampleFromPart1() {
+            assertThat(Day17.part2(input), equalTo(94))
+        }
+
+        @Test
+        fun example2() {
+            val input = InputData.fromString(
+                """
+                111111111111
+                999999999991
+                999999999991
+                999999999991
+                999999999991
+            """.trimIndent()
+            )
+
+            assertThat(Day17.part2(input), equalTo(71))
+        }
     }
 }
