@@ -1,6 +1,8 @@
 package cz.judas.jan.advent
 
 import com.google.common.collect.HashMultimap
+import java.util.*
+import kotlin.Comparator
 
 
 class UndirectedGraph<T>(private val edges: HashMultimap<T, T>) {
@@ -58,3 +60,25 @@ enum class RelativeDirection {
     LEFT,
     RIGHT
 }
+
+fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N, Int>): Int {
+    val queue = PriorityQueue<BacklogNode<N>>(Comparator.comparing { it.pathLength })
+    val done = mutableSetOf<N>()
+    queue += BacklogNode(startingNode, 0)
+
+    while (queue.isNotEmpty()) {
+        val (current, length) = queue.remove()
+        if (current !in done) {
+            if (current == targetNode) {
+                return length
+            }
+            done += current
+            for ((next, weight) in edgeSupplier(current)) {
+                queue += BacklogNode(next, length + weight)
+            }
+        }
+    }
+    throw RuntimeException("Could not find path")
+}
+
+private data class BacklogNode<T>(val node: T, val pathLength: Int)
