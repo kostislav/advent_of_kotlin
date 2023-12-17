@@ -4,6 +4,7 @@ import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.RelativeDirection
 import cz.judas.jan.advent.TwoDimensionalArray
 
 object Day17 {
@@ -29,12 +30,14 @@ object Day17 {
         while (backlog.isNotEmpty()) {
             val current = backlog.removeFirst()
             val currentLoss = best.getValue(current)
-            for (next in current.next(city.numRows, city.numColumns, minStraight, maxStraight)) {
-                val heatLoss = currentLoss + city[next.position]
-                val nextLoss = best[next]
-                if (nextLoss === null || nextLoss > heatLoss) {
-                    best[next] = heatLoss
-                    backlog += next
+            for (next in current.next(minStraight, maxStraight)) {
+                if(city.isInside(next.position)) {
+                    val heatLoss = currentLoss + city[next.position]
+                    val nextLoss = best[next]
+                    if (nextLoss === null || nextLoss > heatLoss) {
+                        best[next] = heatLoss
+                        backlog += next
+                    }
                 }
             }
         }
@@ -48,35 +51,19 @@ object Day17 {
         val direction: Direction,
         val steps: Int
     ) {
-        fun next(numRows: Int, numColumns: Int, minStraight: Int, maxStraight: Int): List<Hypercoordinate> {
-            val result = mutableListOf<Hypercoordinate?>()
-            if (position.row > 0) {
-                result += nextIfAllowed(Direction.UP, minStraight, maxStraight)
+        fun next(minStraight: Int, maxStraight: Int): List<Hypercoordinate> {
+            val result = mutableMapOf<RelativeDirection, Int>()
+            if (steps >= minStraight) {
+                result[RelativeDirection.LEFT] = 1
+                result[RelativeDirection.RIGHT] = 1
             }
-            if (position.row < numRows - 1) {
-                result += nextIfAllowed(Direction.DOWN, minStraight, maxStraight)
+            if (steps < maxStraight) {
+                result[RelativeDirection.FORWARD] = steps + 1
             }
-            if (position.column > 0) {
-                result += nextIfAllowed(Direction.LEFT, minStraight, maxStraight)
-            }
-            if (position.column < numColumns - 1) {
-                result += nextIfAllowed(Direction.RIGHT, minStraight, maxStraight)
-            }
-
-            return result.filterNotNull()
-        }
-
-        private fun nextIfAllowed(nextDirection: Direction, minStraight: Int, maxStraight: Int): Hypercoordinate? {
-            return if (nextDirection == direction) {
-                if (steps < maxStraight) {
-                    Hypercoordinate(position + nextDirection.movement, nextDirection, steps + 1)
-                } else {
-                    null
-                }
-            } else if (nextDirection != direction.inverse() && steps >= minStraight) {
-                Hypercoordinate(position + nextDirection.movement, nextDirection, 1)
-            } else {
-                null
+            return result.map {
+                (relativeDirection, nextSteps) ->
+                val nextDirection = direction.move(relativeDirection)
+                Hypercoordinate(position + nextDirection.movement, nextDirection, nextSteps)
             }
         }
     }

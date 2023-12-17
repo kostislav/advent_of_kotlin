@@ -57,6 +57,10 @@ data class Vector2d(val rows: Int, val columns: Int) {
         return Vector2d(columns, -rows)
     }
 
+    fun rotateLeft(): Vector2d {
+        return Vector2d(-columns, rows)
+    }
+
     fun dotProduct(other: Vector2d): Int {
         return rows * other.rows + columns * other.columns
     }

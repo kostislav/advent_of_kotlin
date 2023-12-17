@@ -101,6 +101,14 @@ class TwoDimensionalArray<out T>(
         return TwoDimensionalArray(numRows, numColumns) { row, column -> snapshot[row][column] }
     }
 
+    fun isInside(row: Int, column: Int): Boolean {
+        return row in 0..<numRows && column in 0..<numColumns
+    }
+
+    fun isInside(position: Coordinate): Boolean {
+        return isInside(position.row, position.column)
+    }
+
     companion object {
         fun charsFromLines(lines: List<String>): TwoDimensionalArray<Char> {
             return TwoDimensionalArray(lines.size, lines[0].length) { i, j -> lines[i][j] }

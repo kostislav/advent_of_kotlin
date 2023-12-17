@@ -35,11 +35,26 @@ enum class Direction(val movement: Vector2d) {
     RIGHT(Vector2d(0, 1));
 
     fun inverse(): Direction {
-        return when (this) {
-            UP -> DOWN
-            DOWN -> UP
-            LEFT -> RIGHT
-            RIGHT -> LEFT
+        return byVector.getValue(Vector2d(-movement.rows, -movement.columns))
+    }
+
+    fun move(how: RelativeDirection): Direction {
+        return when(how) {
+            RelativeDirection.FORWARD -> this
+            RelativeDirection.BACK -> this.inverse()
+            RelativeDirection.LEFT -> byVector.getValue(movement.rotateRight())
+            RelativeDirection.RIGHT -> byVector.getValue(movement.rotateLeft())
         }
     }
+
+    companion object {
+        val byVector = Direction.entries.associateBy { it.movement }
+    }
+}
+
+enum class RelativeDirection {
+    FORWARD,
+    BACK,
+    LEFT,
+    RIGHT
 }
