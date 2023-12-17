@@ -6,6 +6,7 @@ import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.RelativeDirection
 import cz.judas.jan.advent.TwoDimensionalArray
+import java.util.PriorityQueue
 
 object Day17 {
     @Answer("902")
@@ -62,23 +63,24 @@ object Day17 {
     }
 
     fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N, Int>): Int {
-        val best = mutableMapOf<N, Int>()
-        val backlog = ArrayDeque<N>()
-        backlog += startingNode
-        best[startingNode] = 0
+        val queue = PriorityQueue<BacklogNode<N>>(Comparator.comparing { it.pathLength })
+        val done = mutableSetOf<N>()
+        queue += BacklogNode(startingNode, 0)
 
-        while (backlog.isNotEmpty()) {
-            val current = backlog.removeFirst()
-            val currentLength = best.getValue(current)
-            for ((next, weight) in edgeSupplier(current)) {
-                val heatLoss = currentLength + weight
-                val nextLength = best[next]
-                if (nextLength === null || nextLength > heatLoss) {
-                    best[next] = heatLoss
-                    backlog += next
+        while (queue.isNotEmpty()) {
+            val (current, length) = queue.remove()
+            if (current !in done) {
+                if (current == targetNode) {
+                    return length
+                }
+                done += current
+                for ((next, weight) in edgeSupplier(current)) {
+                    queue += BacklogNode(next, length + weight)
                 }
             }
         }
-        return best.getValue(targetNode)
+        throw RuntimeException("Could not find path")
     }
+
+    data class BacklogNode<T>(val node: T, val pathLength: Int)
 }
