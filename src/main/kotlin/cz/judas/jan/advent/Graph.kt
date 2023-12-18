@@ -2,7 +2,6 @@ package cz.judas.jan.advent
 
 import com.google.common.collect.HashMultimap
 import java.util.*
-import kotlin.Comparator
 
 
 class UndirectedGraph<T>(private val edges: HashMultimap<T, T>) {
@@ -41,7 +40,7 @@ enum class Direction(val movement: Vector2d) {
     }
 
     fun move(how: RelativeDirection): Direction {
-        return when(how) {
+        return when (how) {
             RelativeDirection.FORWARD -> this
             RelativeDirection.BACK -> this.inverse()
             RelativeDirection.LEFT -> byVector.getValue(movement.rotateRight())
@@ -82,18 +81,20 @@ fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N,
 }
 
 fun calculateArea(steps: List<PathSegment>, includeBorder: Boolean): Long {
-    val orientation = steps.cycle()
-        .windowed(2) { it[0].direction.movement.rotateRight().dotProduct(it[1].direction.movement) }
+    val stepsWithPrevious = steps.cycle()
+        .windowed(2)
         .take(steps.size)
-        .sum()
+
+    val orientation = stepsWithPrevious
+        .sumOf { (previous, current) ->
+            previous.direction.movement.rotateRight().dotProduct(current.direction.movement)
+        }
     val positiveDirection = if (orientation > 0) Direction.LEFT else Direction.RIGHT
     val negativeDirection = positiveDirection.inverse()
 
     var currentRow = 0L
     var sum = 0L
-    for (i in steps.indices) {
-        val previous = steps[(i - 1 + steps.size) % steps.size]
-        val current = steps[i]
+    for ((previous, current) in stepsWithPrevious) {
         val previousRow = currentRow
         currentRow += current.direction.movement.rows * current.amount
         if (current.direction == positiveDirection) {
@@ -101,7 +102,7 @@ fun calculateArea(steps: List<PathSegment>, includeBorder: Boolean): Long {
             if (previous.direction == Direction.UP || previous.direction == positiveDirection) {
                 sum += currentRow
             }
-        } else if(previous.direction == positiveDirection && current.direction == Direction.DOWN) {
+        } else if (previous.direction == positiveDirection && current.direction == Direction.DOWN) {
             sum += previousRow
         } else if (current.direction == negativeDirection) {
             sum -= (current.amount - 1) * (currentRow + 1)

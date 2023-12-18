@@ -8,6 +8,7 @@ import cz.judas.jan.advent.SplitOnPattern
 import cz.judas.jan.advent.enclosedLongRange
 import cz.judas.jan.advent.length
 import cz.judas.jan.advent.parserFor
+import cz.judas.jan.advent.parserUsing
 import cz.judas.jan.advent.product
 import cz.judas.jan.advent.splitOnOnly
 import kotlin.math.sqrt
@@ -15,8 +16,7 @@ import kotlin.math.sqrt
 object Day6 {
     @Answer("4403592")
     fun part1(input: InputData): Int {
-        return parserFor<RaceTable>().parse(input.asString())
-            .games()
+        return parserUsing(::parseInput).parse(input.asString())
             .map { game -> waysToWin(game.time.toLong(), game.distance.toLong()) }
             .product()
     }
@@ -36,13 +36,11 @@ object Day6 {
     }
 
     @Pattern("Time:\\s+(.*)\nDistance:\\s+(.*)")
-    data class RaceTable(
-        val times: @SplitOnPattern("\\s+") List<Int>,
-        val distances: @SplitOnPattern("\\s+") List<Int>,
-    ) {
-        fun games(): List<Game> {
-            return times.zip(distances).map { (time, distance) -> Game(time, distance) }
-        }
+    fun parseInput(
+        times: @SplitOnPattern("\\s+") List<Int>,
+        distances: @SplitOnPattern("\\s+") List<Int>
+    ): List<Game> {
+        return times.zip(distances).map { (time, distance) -> Game(time, distance) }
     }
 
     data class Game(val time: Int, val distance: Int)
