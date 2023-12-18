@@ -18,34 +18,7 @@ object Day10 {
     @Answer("393")
     fun part2(input: InputData): Int {
         val steps = findPath(input)
-        val orientation = steps.cycle()
-            .windowed(2) { it[0].direction.movement.rotateRight().dotProduct(it[1].direction.movement) }
-            .take(steps.size)
-            .sum()
-        val positiveDirection = if (orientation > 0) Direction.LEFT else Direction.RIGHT
-        val negativeDirection = positiveDirection.inverse()
-        val positiveCombinations = setOf(
-            Pair(positiveDirection, positiveDirection),
-            Pair(Direction.UP, positiveDirection),
-            Pair(positiveDirection, Direction.DOWN)
-        )
-        val negativeCombinations = setOf(
-            Pair(negativeDirection, negativeDirection),
-            Pair(Direction.DOWN, negativeDirection),
-            Pair(negativeDirection, Direction.UP)
-        )
-
-        return steps.cycle()
-            .windowed(2) {
-                val directions = Pair(it[0].direction, it[1].direction)
-                when (directions) {
-                    in positiveCombinations -> it[1].position.row
-                    in negativeCombinations -> -it[1].position.row - 1
-                    else -> 0
-                }
-            }
-            .take(steps.size)
-            .sum()
+        return calculateArea(steps)
     }
 
     private fun findPath(input: InputData): List<Step> {
@@ -96,4 +69,36 @@ object Day10 {
         }
     }
 
+    //    TODO move
+    //    TODO optionally include border
+    fun calculateArea(steps: List<Step>): Int {
+        val orientation = steps.cycle()
+            .windowed(2) { it[0].direction.movement.rotateRight().dotProduct(it[1].direction.movement) }
+            .take(steps.size)
+            .sum()
+        val positiveDirection = if (orientation > 0) Direction.LEFT else Direction.RIGHT
+        val negativeDirection = positiveDirection.inverse()
+        val positiveCombinations = setOf(
+            Pair(positiveDirection, positiveDirection),
+            Pair(Direction.UP, positiveDirection),
+            Pair(positiveDirection, Direction.DOWN)
+        )
+        val negativeCombinations = setOf(
+            Pair(negativeDirection, negativeDirection),
+            Pair(Direction.DOWN, negativeDirection),
+            Pair(negativeDirection, Direction.UP)
+        )
+
+        return steps.cycle()
+            .windowed(2) {
+                val directions = Pair(it[0].direction, it[1].direction)
+                when (directions) {
+                    in positiveCombinations -> it[1].position.row
+                    in negativeCombinations -> -it[1].position.row - 1
+                    else -> 0
+                }
+            }
+            .take(steps.size)
+            .sum()
+    }
 }
