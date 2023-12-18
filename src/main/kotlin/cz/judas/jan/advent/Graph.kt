@@ -81,7 +81,7 @@ fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N,
     throw RuntimeException("Could not find path")
 }
 
-fun calculateArea(steps: List<PathSegment>): Long {
+fun calculateArea(steps: List<PathSegment>, includeBorder: Boolean): Long {
     val orientation = steps.cycle()
         .windowed(2) { it[0].direction.movement.rotateRight().dotProduct(it[1].direction.movement) }
         .take(steps.size)
@@ -98,20 +98,22 @@ fun calculateArea(steps: List<PathSegment>): Long {
         currentRow += current.direction.movement.rows * current.amount
         if (current.direction == positiveDirection) {
             sum += (current.amount - 1) * currentRow
-            if (previous.direction == Direction.UP) {
+            if (previous.direction == Direction.UP || previous.direction == positiveDirection) {
                 sum += currentRow
             }
         } else if(previous.direction == positiveDirection && current.direction == Direction.DOWN) {
             sum += previousRow
         } else if (current.direction == negativeDirection) {
             sum -= (current.amount - 1) * (currentRow + 1)
-            if (previous.direction == Direction.DOWN) {
+            if (previous.direction == Direction.DOWN || previous.direction == negativeDirection) {
                 sum -= currentRow + 1
             }
         } else if (previous.direction == negativeDirection && current.direction == Direction.UP) {
             sum -= previousRow + 1
         }
-        sum += current.amount
+        if (includeBorder) {
+            sum += current.amount
+        }
     }
     return sum
 }

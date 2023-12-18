@@ -16,7 +16,7 @@ object Day18 {
             .map(parser::parse)
             .map { PathSegment(it.direction, it.amount) }
 
-        return calculateArea(path)
+        return calculateArea(path, includeBorder = true)
     }
 
     @Answer("52885384955882")
@@ -26,7 +26,7 @@ object Day18 {
             .map(parser::parse)
             .map { PathSegment(it.direction, it.amount) }
 
-        return calculateArea(path)
+        return calculateArea(path, includeBorder = true)
     }
 
     @Pattern("([A-Z]) (\\d+)\\s+.+")
