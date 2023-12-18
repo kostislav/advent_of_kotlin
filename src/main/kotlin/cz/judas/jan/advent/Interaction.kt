@@ -6,10 +6,12 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.message.BasicNameValuePair
+import java.io.FileInputStream
 import java.io.Reader
 import java.io.StringReader
 import java.nio.charset.StandardCharsets
 import kotlin.io.path.Path
+import kotlin.io.path.notExists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
@@ -32,19 +34,13 @@ class InputData(private val source: () -> Reader) {
 
 class InputFetcher {
     fun get(year: Int, day: Int): InputData {
-        val relativeResourcePath = "year${year}/day${day}"
-        val resource = InputData::class.java.getResource(relativeResourcePath)
-        return if (resource === null) {
+        val inputFile = Path("inputs/year${year}/day${day}")
+        if (inputFile.notExists()) {
             val data = fetch(year, day)
-            Path("src/main/resources/cz/judas/jan/advent/${relativeResourcePath}").writeText(
-                data,
-                StandardCharsets.UTF_8
-            )
-            InputData { StringReader(data) }
-        } else {
-            InputData {
-                resource.openStream().reader(StandardCharsets.UTF_8)
-            }
+            inputFile.writeText(data, StandardCharsets.UTF_8)
+        }
+        return InputData {
+            FileInputStream(inputFile.toFile()).buffered().reader(StandardCharsets.UTF_8)
         }
     }
 
