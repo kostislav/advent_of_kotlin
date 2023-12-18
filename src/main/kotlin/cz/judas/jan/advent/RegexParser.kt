@@ -35,6 +35,23 @@ fun <T> parserUsing(function: KCallable<T>): Parser<T> {
     )
 }
 
+inline fun <T, reified U1, reified U2> lambdaParser(@Language("RegExp") pattern: String, noinline function: (U1, U2) -> T): Parser<T> {
+    val wrapper = Function2Wrapper(function)
+    return PatterFunctionParser(
+        Regex(pattern),
+        wrapper::call,
+        listOf(
+            buildParser(typeOf<U1>()),
+            buildParser(typeOf<U2>())
+        )
+    )
+}
+
+inline fun <T, reified U1, reified U2> List<String>.mapParsing(@Language("RegExp") pattern: String, noinline function: (U1, U2) -> T): List<T> {
+    val parser = lambdaParser(pattern, function)
+    return map(parser::parse)
+}
+
 fun <T> String.parse(parser: Parser<T>): T {
     return parser.parse(this)
 }
@@ -100,7 +117,7 @@ private fun buildRegex(pattern: Pattern): Regex {
     return Regex(pattern.pattern, setOf(RegexOption.DOT_MATCHES_ALL))
 }
 
-private fun <T: Any> KAnnotatedElement.getAnnotation(annotationType: KClass<T>): T? {
+private fun <T : Any> KAnnotatedElement.getAnnotation(annotationType: KClass<T>): T? {
     val found = annotations.filterIsInstance(annotationType.java)
     return when (found.size) {
         0 -> null
@@ -201,9 +218,14 @@ class PatternListParser<T>(
 
 class CustomLambdaParser<T>(
     private val parsingFunction: (String) -> T
-): Parser<T> {
+) : Parser<T> {
     override fun parse(input: String): T {
         return parsingFunction(input)
     }
+}
 
+class Function2Wrapper<T1, T2, U>(private val function: (T1, T2) -> U) {
+    fun call(param1: T1, param2: T2): U {
+        return function(param1, param2)
+    }
 }
