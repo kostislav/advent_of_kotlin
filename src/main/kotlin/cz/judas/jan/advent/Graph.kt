@@ -81,4 +81,41 @@ fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N,
     throw RuntimeException("Could not find path")
 }
 
+fun calculateArea(steps: List<PathSegment>): Long {
+    val orientation = steps.cycle()
+        .windowed(2) { it[0].direction.movement.rotateRight().dotProduct(it[1].direction.movement) }
+        .take(steps.size)
+        .sum()
+    val positiveDirection = if (orientation > 0) Direction.LEFT else Direction.RIGHT
+    val negativeDirection = positiveDirection.inverse()
+
+    var currentRow = 0L
+    var sum = 0L
+    for (i in steps.indices) {
+        val previous = steps[(i - 1 + steps.size) % steps.size]
+        val current = steps[i]
+        val previousRow = currentRow
+        currentRow += current.direction.movement.rows * current.amount
+        if (current.direction == positiveDirection) {
+            sum += (current.amount - 1) * currentRow
+            if (previous.direction == Direction.UP) {
+                sum += currentRow
+            }
+        } else if(previous.direction == positiveDirection && current.direction == Direction.DOWN) {
+            sum += previousRow
+        } else if (current.direction == negativeDirection) {
+            sum -= (current.amount - 1) * (currentRow + 1)
+            if (previous.direction == Direction.DOWN) {
+                sum -= currentRow + 1
+            }
+        } else if (previous.direction == negativeDirection && current.direction == Direction.UP) {
+            sum -= previousRow + 1
+        }
+        sum += current.amount
+    }
+    return sum
+}
+
+data class PathSegment(val direction: Direction, val amount: Int)
+
 private data class BacklogNode<T>(val node: T, val pathLength: Int)
