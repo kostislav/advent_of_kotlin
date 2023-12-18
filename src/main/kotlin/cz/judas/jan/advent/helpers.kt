@@ -64,6 +64,10 @@ data class Vector2d(val rows: Int, val columns: Int) {
     fun dotProduct(other: Vector2d): Int {
         return rows * other.rows + columns * other.columns
     }
+
+    operator fun times(howMuch: Int): Vector2d {
+        return Vector2d(rows * howMuch, columns * howMuch)
+    }
 }
 
 enum class Digit {

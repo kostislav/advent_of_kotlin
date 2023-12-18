@@ -27,11 +27,11 @@ class Day18Test {
 
     @Test
     fun part1() {
-        assertThat(Day18.part1(input), equalTo(62))
+        assertThat(Day18.part1(input), equalTo(62L))
     }
 
     @Test
     fun part2() {
-        assertThat(Day18.part2(input), equalTo(51))
+        assertThat(Day18.part2(input), equalTo(952408144115L))
     }
 }
