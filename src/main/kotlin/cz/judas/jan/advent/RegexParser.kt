@@ -65,6 +65,7 @@ fun buildParser(type: KType): Parser<Any> {
         String::class -> StringParser
         Int::class -> IntParser
         Long::class -> LongParser
+        Char::class -> CharParser
         is KClass<*> -> {
             if (classifier == List::class) {
                 val itemType = type.arguments[0].type!!
@@ -163,6 +164,16 @@ object IntParser : Parser<Int> {
 object LongParser : Parser<Long> {
     override fun parse(input: String): Long {
         return input.toLong()
+    }
+}
+
+object CharParser : Parser<Char> {
+    override fun parse(input: String): Char {
+        if (input.length > 1) {
+            throw RuntimeException("Cannot convert multi-character string to char")
+        } else {
+            return input[0]
+        }
     }
 }
 
