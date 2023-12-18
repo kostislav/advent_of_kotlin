@@ -6,12 +6,12 @@ import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.PathSegment
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.calculateArea
-import cz.judas.jan.advent.parserFor
+import cz.judas.jan.advent.parserUsing
 
 object Day18 {
     @Answer("49578")
     fun part1(input: InputData): Long {
-        val parser = parserFor<Part1Line>()
+        val parser = parserUsing(Part1Parser::parseLine)
         val path = input.lines()
             .map(parser::parse)
             .map { PathSegment(it.direction, it.amount) }
@@ -21,7 +21,7 @@ object Day18 {
 
     @Answer("52885384955882")
     fun part2(input: InputData): Long {
-        val parser = parserFor<Part2Line>()
+        val parser = parserUsing(Part2Parser::parseLine)
         val path = input.lines()
             .map(parser::parse)
             .map { PathSegment(it.direction, it.amount) }
@@ -29,33 +29,37 @@ object Day18 {
         return calculateArea(path, includeBorder = true)
     }
 
-    @Pattern("([A-Z]) (\\d+)\\s+.+")
-    class Part1Line(
-        directionChar: String,  // TODO Char
-        val amount: Int,
-    ) {
-        val direction = when(directionChar) {
-            "U" -> Direction.UP
-            "D" -> Direction.DOWN
-            "L" -> Direction.LEFT
-            "R" -> Direction.RIGHT
-            else -> throw RuntimeException("Unexpected direction")
+    object Part1Parser {
+        private val directionMapping = mapOf(
+            "U" to Direction.UP,
+            "D" to Direction.DOWN,
+            "L" to Direction.LEFT,
+            "R" to Direction.RIGHT
+        )
+
+        @Pattern("([A-Z]) (\\d+)\\s+.+")
+        fun parseLine(direction: String /* TODO Char */, amount: Int): PathSegment {
+            return PathSegment(
+                directionMapping.getValue(direction),
+                amount
+            )
         }
     }
 
-    @Pattern(".+\\(#(.+)(.)\\)")
-    class Part2Line(
-        amountString: String,
-        directionChar: String,
-    ) {
-        val direction = when(directionChar) {
-            "0" -> Direction.RIGHT
-            "1" -> Direction.DOWN
-            "2" -> Direction.LEFT
-            "3" -> Direction.UP
-            else -> throw RuntimeException("Unexpected direction")
-        }
+    object Part2Parser {
+        private val directionMapping = mapOf(
+            "0" to Direction.RIGHT,
+            "1" to Direction.DOWN,
+            "2" to Direction.LEFT,
+            "3" to Direction.UP
+        )
 
-        val amount = amountString.toInt(16)
+        @Pattern(".+\\(#(.+)(.)\\)")
+        fun parseLine(amount: String /* TODO Radix */, direction: String): PathSegment {
+            return PathSegment(
+                directionMapping.getValue(direction),
+                amount.toInt(16)
+            )
+        }
     }
 }

@@ -2,8 +2,8 @@ package cz.judas.jan.advent
 
 import org.intellij.lang.annotations.Language
 import kotlin.reflect.KAnnotatedElement
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
@@ -13,7 +13,7 @@ import kotlin.reflect.typeOf
 
 // multiline parameter with default value does not work:
 // https://youtrack.jetbrains.com/issue/KT-39369/KotlinReflectionInternalError-Method-is-not-supported-for-default-value-in-type-annotation
-@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
 annotation class Pattern(@Language("RegExp") val pattern: String)
 
 @Target(AnnotationTarget.TYPE)
@@ -25,6 +25,14 @@ annotation class SplitOnPattern(@Language("RegExp") val delimiterPattern: String
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> parserFor(): Parser<T> {
     return buildParser(typeOf<T>()) as Parser<T>
+}
+
+fun <T> parserUsing(function: KCallable<T>): Parser<T> {
+    return PatterFunctionParser(
+        Regex(function.getAnnotation(Pattern::class)!!.pattern),
+        function,
+        function.parameters.map { buildParser(it.type) }
+    )
 }
 
 fun <T> String.parse(parser: Parser<T>): T {
@@ -75,7 +83,7 @@ fun buildParser(type: KType): Parser<Any> {
                 return EnumParser(values)
             } else {
                 val constructor = classifier.primaryConstructor!!
-                return PatterClassParser(
+                return PatterFunctionParser(
                     buildRegex(classifier.getAnnotation(Pattern::class)!!),
                     constructor,
                     constructor.parameters.map { buildParser(it.type) }
@@ -105,9 +113,9 @@ interface Parser<out T> {
     fun parse(input: String): T
 }
 
-class PatterClassParser<T>(
+class PatterFunctionParser<T>(
     private val pattern: Regex,
-    private val constructor: KFunction<T>,
+    private val constructor: KCallable<T>,
     private val parameterParsers: List<Parser<Any>>,
 ) : Parser<T> {
     override fun parse(input: String): T {
