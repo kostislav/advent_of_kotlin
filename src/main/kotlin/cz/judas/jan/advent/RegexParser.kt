@@ -22,6 +22,10 @@ annotation class SplitOn(vararg val delimiters: String)
 @Target(AnnotationTarget.TYPE)
 annotation class SplitOnPattern(@Language("RegExp") val delimiterPattern: String)
 
+interface ParsedFromString {
+    val stringValue: String
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> parserFor(): Parser<T> {
     return buildParser(typeOf<T>()) as Parser<T>
@@ -97,7 +101,11 @@ fun buildParser(type: KType): Parser<Any> {
                     return SplittingListParser(delimiters, buildParser(itemType))
                 }
             } else if (classifier.isSubclassOf(Enum::class)) {
-                val values = classifier.java.enumConstants.associateBy { (it as Enum<*>).name }
+                val values =  if (classifier.isSubclassOf(ParsedFromString::class)) {
+                    classifier.java.enumConstants.associateBy { (it as ParsedFromString).stringValue }
+                } else {
+                    classifier.java.enumConstants.associateBy { (it as Enum<*>).name }
+                }
                 return EnumParser(values)
             } else {
                 val constructor = classifier.primaryConstructor!!

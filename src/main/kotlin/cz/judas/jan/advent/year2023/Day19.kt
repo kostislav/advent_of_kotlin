@@ -3,6 +3,7 @@ package cz.judas.jan.advent.year2023
 import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.ParsedFromString
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.parserFor
@@ -59,22 +60,12 @@ object Day19 {
         val parts: @SplitOn("\n") List<Part>
     )
 
-    @Pattern("([a-z]+)\\{(.+),([a-zA-Z]+)}")
+    @Pattern("([a-z]+)\\{(?:(.+),)?([a-zA-Z]+)}")
     class Workflow(
         val name: String,
-        conditionalRules: @SplitOn(",") List<String>,
+        private val conditionalRules: @SplitOn(",") List<ConditionalRule>,
         private val fallback: String
     ) {
-        private val conditionalRules = conditionalRules.map { rule ->
-            val groupValues = pattern.matchEntire(rule)!!.groupValues
-            ConditionalRule(
-                groupValues[1][0],
-                Operator.fromString(groupValues[2]),
-                groupValues[3].toInt(),
-                groupValues[4]
-            )
-        }
-
         fun next(part: Part): String {
             return conditionalRules.firstNotNullOfOrNull { rule -> rule.process(part) } ?: fallback
         }
@@ -95,10 +86,6 @@ object Day19 {
             }
             result += fallback to current
             return result
-        }
-
-        companion object {
-            private val pattern = Regex("(.)(.)(\\d+):(.+)")
         }
     }
 
@@ -126,28 +113,19 @@ object Day19 {
         }
     }
 
-    enum class Operator {
-        LESS_THAN {
+    @Suppress("unused")
+    enum class Operator(override val stringValue: String): ParsedFromString {
+        LESS_THAN("<") {
             override fun matchingRange(threshold: Int): Range<Int> = Range.lessThan(threshold)
             override fun nonMatchingRange(threshold: Int): Range<Int> = Range.atLeast(threshold)
         },
-        GREATER_THAN {
+        GREATER_THAN(">") {
             override fun matchingRange(threshold: Int): Range<Int> = Range.greaterThan(threshold)
             override fun nonMatchingRange(threshold: Int): Range<Int> = Range.atMost(threshold)
         };
 
         abstract fun matchingRange(threshold: Int): Range<Int>
         abstract fun nonMatchingRange(threshold: Int): Range<Int>
-
-        companion object {
-            fun fromString(input: String): Operator {
-                return when (input) {
-                    "<" -> LESS_THAN
-                    ">" -> GREATER_THAN
-                    else -> throw RuntimeException("Unexpected input")
-                }
-            }
-        }
     }
 
     @Pattern("\\{(.+)}")
