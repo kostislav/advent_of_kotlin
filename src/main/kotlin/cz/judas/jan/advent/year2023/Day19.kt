@@ -24,7 +24,7 @@ object Day19 {
             .sumOf { it.ratingSum() }
     }
 
-    @Answer("")
+    @Answer("132380153677887")
     fun part2(input: InputData): Long {
         val fullRange = Range.closed(1, 4000)
         val parser = parserFor<Workflow>()
@@ -49,23 +49,8 @@ object Day19 {
                 backlog += workflows.getValue(workflowId).next(remainingRange)
             }
         }
-        return acceptedRanges.indices
-            .sumOf { i ->
-                val thisRange = acceptedRanges[i]
-                val volume = thisRange.values.map { it.size.toLong() }.product()
-                val intersectionVolumes = (0..<i).sumOf { j ->
-                    val otherRange = acceptedRanges[j]
-                    thisRange.map { (key, value) ->
-                        val otherRangeDimension = otherRange.getValue(key)
-                        if (otherRangeDimension.isConnected(value)) {
-                            otherRangeDimension.intersection(value).size.toLong()
-                        } else {
-                            0L
-                        }
-                    }.product()
-                }
-                volume - intersectionVolumes
-            }
+        return acceptedRanges
+            .sumOf { hypercube -> hypercube.values.map { it.size.toLong() }.product() }
     }
 
     @Pattern("(.+)\n\n(.+)")
