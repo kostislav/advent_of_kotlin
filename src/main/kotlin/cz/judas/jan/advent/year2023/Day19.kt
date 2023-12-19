@@ -1,22 +1,24 @@
 package cz.judas.jan.advent.year2023
 
+import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.parserFor
+import cz.judas.jan.advent.product
+import cz.judas.jan.advent.size
 
 object Day19 {
     @Answer("476889")
     fun part1(input: InputData): Int {
         val parsedInput = parserFor<Input>().parse(input.asString())
-        val workflows = parsedInput.workflows.associate { it.name to it.rules() }
+        val workflows = parsedInput.workflows.associateBy { it.name }
         return parsedInput.parts
             .filter { part ->
                 val outcome = generateSequence("in") {
-                    workflows.getValue(it).firstNotNullOf { rule -> rule.process(part) }
-                }
-                    .first { it == "A" || it == "R" }
+                    workflows.getValue(it).next(part)
+                }.first { it == "A" || it == "R" }
                 outcome == "A"
             }
             .sumOf { it.ratingSum() }
@@ -24,7 +26,46 @@ object Day19 {
 
     @Answer("")
     fun part2(input: InputData): Long {
-        return 0
+        val fullRange = Range.closed(1, 4000)
+        val parser = parserFor<Workflow>()
+        val workflows = input.lines()
+            .takeWhile { it.isNotEmpty() }
+            .map(parser::parse)
+            .associateBy { it.name }
+
+        val backlog = ArrayDeque<Pair<String, Map<Char, Range<Int>>>>()
+        backlog += "in" to mapOf(
+            'x' to fullRange,
+            'm' to fullRange,
+            'a' to fullRange,
+            's' to fullRange
+        )
+        val acceptedRanges = mutableListOf<Map<Char, Range<Int>>>()
+        while (backlog.isNotEmpty()) {
+            val (workflowId, remainingRange) = backlog.removeFirst()
+            if (workflowId == "A") {
+                acceptedRanges += remainingRange
+            } else if (workflowId != "R") {
+                backlog += workflows.getValue(workflowId).next(remainingRange)
+            }
+        }
+        return acceptedRanges.indices
+            .sumOf { i ->
+                val thisRange = acceptedRanges[i]
+                val volume = thisRange.values.map { it.size.toLong() }.product()
+                val intersectionVolumes = (0..<i).sumOf { j ->
+                    val otherRange = acceptedRanges[j]
+                    thisRange.map { (key, value) ->
+                        val otherRangeDimension = otherRange.getValue(key)
+                        if (otherRangeDimension.isConnected(value)) {
+                            otherRangeDimension.intersection(value).size.toLong()
+                        } else {
+                            0L
+                        }
+                    }.product()
+                }
+                volume - intersectionVolumes
+            }
     }
 
     @Pattern("(.+)\n\n(.+)")
@@ -33,26 +74,42 @@ object Day19 {
         val parts: @SplitOn("\n") List<Part>
     )
 
-    @Pattern("([a-z]+)\\{(.+)}")
+    @Pattern("([a-z]+)\\{(.+),([a-zA-Z]+)}")
     class Workflow(
         val name: String,
-        private val rules: @SplitOn(",") List<String>
+        conditionalRules: @SplitOn(",") List<String>,
+        private val fallback: String
     ) {
-        fun rules(): List<Rule> {
-            return rules
-                .map { rule ->
-                    if (':' in rule) {
-                        val groupValues = pattern.matchEntire(rule)!!.groupValues
-                        Rule.Conditional(
-                            groupValues[1][0],
-                            Operator.fromString(groupValues[2]),
-                            groupValues[3].toInt(),
-                            groupValues[4]
-                        )
-                    } else {
-                        Rule.Unconditional(rule)
-                    }
+        private val conditionalRules = conditionalRules.map { rule ->
+            val groupValues = pattern.matchEntire(rule)!!.groupValues
+            ConditionalRule(
+                groupValues[1][0],
+                Operator.fromString(groupValues[2]),
+                groupValues[3].toInt(),
+                groupValues[4]
+            )
+        }
+
+        fun next(part: Part): String {
+            return conditionalRules.firstNotNullOfOrNull { rule -> rule.process(part) } ?: fallback
+        }
+
+        fun next(input: Map<Char, Range<Int>>): List<Pair<String, Map<Char, Range<Int>>>> {
+            val result = mutableListOf<Pair<String, Map<Char, Range<Int>>>>()
+            var current = input
+            for (conditionalRule in conditionalRules) {
+                val (matching, nonMatching) = conditionalRule.split(current)
+                if (matching !== null) {
+                    result += matching
                 }
+                if (nonMatching === null) {
+                    return result
+                } else {
+                    current = nonMatching
+                }
+            }
+            result += fallback to current
+            return result
         }
 
         companion object {
@@ -60,41 +117,46 @@ object Day19 {
         }
     }
 
-    sealed interface Rule {
-        fun process(part: Part): String?
+    @Pattern("(.)(.)(\\d+):(.+)")
+    class ConditionalRule(private val type: Char, operator: Operator, value: Int, private val target: String) {
+        private val matchingRange = operator.matchingRange(value)
+        private val nonMatchingRange = operator.nonMatchingRange(value)
 
-        @Pattern("(.)(.)(\\d+):(.+)")
-        class Conditional(private val type: Char, private val operator: Operator, private val value: Int, private val target: String): Rule {
-            override fun process(part: Part): String? {
-                return if(operator.matches(part.ratings.getValue(type), value)) {
-                    target
-                } else {
-                    null
-                }
+        fun process(part: Part): String? {
+            return if (matchingRange.contains(part.ratings.getValue(type))) {
+                target
+            } else {
+                null
             }
         }
 
-        @Pattern(".+")
-        class Unconditional(private val target: String): Rule {
-            override fun process(part: Part): String? {
-                return target
-            }
+        fun split(input: Map<Char, Range<Int>>): Pair<Pair<String, Map<Char, Range<Int>>>?, Map<Char, Range<Int>>?> {
+            val inputRange = input.getValue(type)
+            val matchingInput = inputRange.intersection(matchingRange)
+            val nonMatchingInput = inputRange.intersection(nonMatchingRange)
+            return Pair(
+                if(matchingInput.isEmpty) null else target to input + mapOf(type to matchingInput),
+                if(nonMatchingInput.isEmpty) null else input + mapOf(type to nonMatchingInput)
+            )
         }
     }
 
     enum class Operator {
         LESS_THAN {
-            override fun matches(partValue: Int, threshold: Int) = partValue < threshold
+            override fun matchingRange(threshold: Int): Range<Int> = Range.lessThan(threshold)
+            override fun nonMatchingRange(threshold: Int): Range<Int> = Range.atLeast(threshold)
         },
         GREATER_THAN {
-            override fun matches(partValue: Int, threshold: Int) = partValue > threshold
+            override fun matchingRange(threshold: Int): Range<Int> = Range.greaterThan(threshold)
+            override fun nonMatchingRange(threshold: Int): Range<Int> = Range.atMost(threshold)
         };
 
-        abstract fun matches(partValue: Int, threshold: Int): Boolean
+        abstract fun matchingRange(threshold: Int): Range<Int>
+        abstract fun nonMatchingRange(threshold: Int): Range<Int>
 
         companion object {
             fun fromString(input: String): Operator {
-                return when(input) {
+                return when (input) {
                     "<" -> LESS_THAN
                     ">" -> GREATER_THAN
                     else -> throw RuntimeException("Unexpected input")

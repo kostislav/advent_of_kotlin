@@ -1,6 +1,8 @@
 package cz.judas.jan.advent
 
 import com.google.common.collect.BoundType
+import com.google.common.collect.ContiguousSet
+import com.google.common.collect.DiscreteDomain
 import com.google.common.collect.Range
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.ceil
@@ -29,6 +31,10 @@ fun <I1, I2, O> recursive(input1: I1, input2: I2, cached: Boolean = false, calcu
             recursion(Pair(rec1, rec2))
         }
     }
+}
+
+val Range<Int>.size get(): Int {
+    return ContiguousSet.create(this, DiscreteDomain.integers()).size
 }
 
 fun <I, O> recursive(input: I, cached: Boolean = false, calculation: (I, (I) -> O) -> O): O {

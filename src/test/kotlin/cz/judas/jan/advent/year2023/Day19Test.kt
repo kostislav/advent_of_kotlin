@@ -35,6 +35,6 @@ class Day19Test {
 
     @Test
     fun part2() {
-        assertThat(Day19.part2(input), equalTo(0))
+        assertThat(Day19.part2(input), equalTo(167409079868000L))
     }
 }
