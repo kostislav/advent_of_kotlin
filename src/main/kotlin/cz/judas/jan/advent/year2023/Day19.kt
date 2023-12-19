@@ -6,6 +6,7 @@ import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.ParsedFromString
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
+import cz.judas.jan.advent.mapFirst
 import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.product
 import cz.judas.jan.advent.size
@@ -34,14 +35,16 @@ object Day19 {
             .map(parser::parse)
             .associateBy { it.name }
 
-        val backlog = ArrayDeque<Pair<String, Map<Char, Range<Int>>>>()
-        backlog += "in" to mapOf(
-            'x' to fullRange,
-            'm' to fullRange,
-            'a' to fullRange,
-            's' to fullRange
+        val backlog = ArrayDeque<Pair<String, Hypercube>>()
+        backlog += "in" to Hypercube(
+            mapOf(
+                'x' to fullRange,
+                'm' to fullRange,
+                'a' to fullRange,
+                's' to fullRange
+            )
         )
-        val acceptedRanges = mutableListOf<Map<Char, Range<Int>>>()
+        val acceptedRanges = mutableListOf<Hypercube>()
         while (backlog.isNotEmpty()) {
             val (workflowId, remainingRange) = backlog.removeFirst()
             if (workflowId == "A") {
@@ -50,8 +53,7 @@ object Day19 {
                 backlog += workflows.getValue(workflowId).next(remainingRange)
             }
         }
-        return acceptedRanges
-            .sumOf { hypercube -> hypercube.values.map { it.size.toLong() }.product() }
+        return acceptedRanges.sumOf { it.volume() }
     }
 
     @Pattern("(.+)\n\n(.+)")
@@ -70,8 +72,8 @@ object Day19 {
             return conditionalRules.firstNotNullOfOrNull { rule -> rule.process(part) } ?: fallback
         }
 
-        fun next(input: Map<Char, Range<Int>>): List<Pair<String, Map<Char, Range<Int>>>> {
-            val result = mutableListOf<Pair<String, Map<Char, Range<Int>>>>()
+        fun next(input: Hypercube): List<Pair<String, Hypercube>> {
+            val result = mutableListOf<Pair<String, Hypercube>>()
             var current = input
             for (conditionalRule in conditionalRules) {
                 val (matching, nonMatching) = conditionalRule.split(current)
@@ -102,19 +104,14 @@ object Day19 {
             }
         }
 
-        fun split(input: Map<Char, Range<Int>>): Pair<Pair<String, Map<Char, Range<Int>>>?, Map<Char, Range<Int>>?> {
-            val inputRange = input.getValue(type)
-            val matchingInput = inputRange.intersection(matchingRange)
-            val nonMatchingInput = inputRange.intersection(nonMatchingRange)
-            return Pair(
-                if(matchingInput.isEmpty) null else target to input + mapOf(type to matchingInput),
-                if(nonMatchingInput.isEmpty) null else input + mapOf(type to nonMatchingInput)
-            )
+        fun split(input: Hypercube): Pair<Pair<String, Hypercube>?, Hypercube?> {
+            return input.split(type, matchingRange, nonMatchingRange)
+                .mapFirst { if (it === null) null else target to it }
         }
     }
 
     @Suppress("unused")
-    enum class Operator(override val stringValue: String): ParsedFromString {
+    enum class Operator(override val stringValue: String) : ParsedFromString {
         LESS_THAN("<") {
             override fun matchingRange(threshold: Int): Range<Int> = Range.lessThan(threshold)
             override fun nonMatchingRange(threshold: Int): Range<Int> = Range.atLeast(threshold)
@@ -142,4 +139,20 @@ object Day19 {
         val type: Char,
         val value: Int
     )
+
+    class Hypercube(private val dimensions: Map<Char, Range<Int>>) {
+        fun split(dimension: Char, matchingRange: Range<Int>, nonMatchingRange: Range<Int>): Pair<Hypercube?, Hypercube?> {
+            val inputRange = dimensions.getValue(dimension)
+            val matchingInput = inputRange.intersection(matchingRange)
+            val nonMatchingInput = inputRange.intersection(nonMatchingRange)
+            return Pair(
+                if (matchingInput.isEmpty) null else Hypercube(dimensions + mapOf(dimension to matchingInput)),
+                if (nonMatchingInput.isEmpty) null else Hypercube(dimensions + mapOf(dimension to nonMatchingInput))
+            )
+        }
+
+        fun volume(): Long {
+            return dimensions.values.map { it.size.toLong() }.product()
+        }
+    }
 }

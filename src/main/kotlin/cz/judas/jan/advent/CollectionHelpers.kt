@@ -116,6 +116,10 @@ fun <I, O> Pair<I, I>.map(transformation: (I) -> O): Pair<O, O> {
     return Pair(transformation(first), transformation(second))
 }
 
+fun <T1, T2, O> Pair<T1, T2>.mapFirst(transformation: (T1) -> O): Pair<O, T2> {
+    return Pair(transformation(first), second)
+}
+
 fun <I1, I2, O> Pair<I1, I2>.collect(merger: (I1, I2) -> O): O {
     return merger(first, second)
 }
