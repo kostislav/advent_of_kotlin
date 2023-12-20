@@ -39,9 +39,4 @@ class Day20Test {
             assertThat(Day20.part1(input), equalTo(11687500L))
         }
     }
-
-    @Test
-    fun part2() {
-//        assertThat(Day20.part2(input), equalTo(167409079868000L))
-    }
 }

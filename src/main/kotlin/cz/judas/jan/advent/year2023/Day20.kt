@@ -5,6 +5,8 @@ import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
+import cz.judas.jan.advent.getOnlyElement
+import cz.judas.jan.advent.leastCommonMultiple
 import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.toMultiMap
 
@@ -44,7 +46,48 @@ object Day20 {
 
     @Answer("")
     fun part2(input: InputData): Long {
-        return 0L
+        val parser = parserFor<ModuleConfiguration>()
+        val moduleConfigurations = input.lines()
+            .map(parser::parse)
+            .associateBy { it.name }
+        val invertedGraph = moduleConfigurations
+            .values
+            .flatMap { module -> module.targets.map { it to module.name } }
+            .toMultiMap()
+
+        val subgraphEndpoints = invertedGraph.get(invertedGraph.get("rx").getOnlyElement()).toList()
+
+//        PrintWriter(File("/tmp/day20")).use { writer ->
+//            writer.println("strict digraph {") // TODO
+////            moduleConfigurations.keys.forEach{
+////                writer.println("  ${it}") // TODO
+////            }
+////            writer.println() // TODO
+//            moduleConfigurations.forEach{ name, module ->
+//                writer.println("  ${name} -> {${module.targets.joinToString(" ")}}") // TODO
+//            }
+//            writer.println("}") // TODO
+//        }
+
+        return subgraphEndpoints.map { subgraphEndpoint ->
+            val fakeRxModule = RxModule()
+            val modules = moduleConfigurations.mapValues { it.value.create(invertedGraph) } + mapOf(subgraphEndpoint to fakeRxModule)
+
+            var counter = 0L
+            while (fakeRxModule.peekAndReset() != 1) {
+                counter += 1
+
+                val backlog = ArrayDeque<Pulse>()
+                backlog += Pulse(PulseType.LOW, "button", "broadcaster")
+                while (backlog.isNotEmpty()) {
+                    val (pulseType, source, target) = backlog.removeFirst()
+                    modules[target]?.let { module ->
+                        backlog += module.handlePulse(pulseType, source).map { Pulse(it.type, target, it.target) }
+                    }
+                }
+            }
+            counter
+        }.leastCommonMultiple()
     }
 
     @Pattern("([^ ]+) -> (.*)")
@@ -143,4 +186,21 @@ object Day20 {
     enum class PulseType { HIGH, LOW }
 
     data class Pulse(val type: PulseType, val source: String, val target: String)
+
+    class RxModule: Module {
+        var numLowPulses = 0
+
+        override fun handlePulse(type: PulseType, source: String): List<OutgoingPulse> {
+            if (type == PulseType.LOW) {
+                numLowPulses += 1
+            }
+            return emptyList()
+        }
+
+        fun peekAndReset(): Int {
+            val copy = numLowPulses
+            numLowPulses = 0
+            return copy
+        }
+    }
 }
