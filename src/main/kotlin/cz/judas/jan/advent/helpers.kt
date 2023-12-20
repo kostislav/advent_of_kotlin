@@ -19,17 +19,21 @@ fun Range<Double>.enclosedLongRange(): Range<Long> {
     )
 }
 
-
 fun Range<Long>.length(): Long {
     return upperEndpoint() - lowerEndpoint() + 1
 }
 
-
 fun <I1, I2, O> recursive(input1: I1, input2: I2, cached: Boolean = false, calculation: (I1, I2, (I1, I2) -> O) -> O): O {
-    return recursive(Pair(input1, input2), cached) { (next1, next2), recursion ->
-        calculation(next1, next2) { rec1, rec2 ->
-            recursion(Pair(rec1, rec2))
+    return if (cached) {
+        recursive(Pair(input1, input2), cached) { (next1, next2), recursion ->
+            calculation(next1, next2) { rec1, rec2 ->
+                recursion(Pair(rec1, rec2))
+            }
         }
+    } else {
+        val recursiveHolder = AtomicReference<(I1, I2) -> O>()
+        recursiveHolder.set { key1, key2 -> calculation(key1, key2, recursiveHolder.get()) }
+        calculation(input1, input2, recursiveHolder.get())
     }
 }
 
@@ -55,6 +59,27 @@ fun <I, O> recursive(input: I, cached: Boolean = false, calculation: (I, (I) -> 
         recursiveHolder.set { key -> calculation(key, recursiveHolder.get()) }
     }
     return calculation(input, recursiveHolder.get())
+}
+
+
+fun <T> breadthFirstSearch(startingPoint: T, step: (T, backlog: BreadthFirstSearchBacklog<T>) -> Unit) {
+    val backlog = ArrayDeque<T>()
+    val backlogWrapper = BreadthFirstSearchBacklog(backlog)
+    backlog += startingPoint
+    while (backlog.isNotEmpty()) {
+        val next = backlog.removeFirst()
+        step(next, backlogWrapper)
+    }
+}
+
+class BreadthFirstSearchBacklog<T>(private val queue: ArrayDeque<T>) {
+    operator fun plusAssign(item: T) {
+        queue += item
+    }
+
+    operator fun plusAssign(items: Iterable<T>) {
+        queue += items
+    }
 }
 
 

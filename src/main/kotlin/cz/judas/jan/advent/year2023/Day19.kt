@@ -6,6 +6,7 @@ import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.ParsedFromString
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
+import cz.judas.jan.advent.breadthFirstSearch
 import cz.judas.jan.advent.mapFirst
 import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.product
@@ -35,8 +36,7 @@ object Day19 {
             .map(parser::parse)
             .associateBy { it.name }
 
-        val backlog = ArrayDeque<Pair<String, Hypercube>>()
-        backlog += "in" to Hypercube(
+        val fullHypercube = "in" to Hypercube(
             mapOf(
                 'x' to fullRange,
                 'm' to fullRange,
@@ -45,8 +45,7 @@ object Day19 {
             )
         )
         val acceptedRanges = mutableListOf<Hypercube>()
-        while (backlog.isNotEmpty()) {
-            val (workflowId, remainingRange) = backlog.removeFirst()
+        breadthFirstSearch(fullHypercube) { (workflowId, remainingRange), backlog ->
             if (workflowId == "A") {
                 acceptedRanges += remainingRange
             } else if (workflowId != "R") {

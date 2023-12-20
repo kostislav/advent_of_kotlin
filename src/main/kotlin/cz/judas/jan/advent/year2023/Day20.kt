@@ -5,6 +5,7 @@ import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SplitOn
+import cz.judas.jan.advent.breadthFirstSearch
 import cz.judas.jan.advent.getOnlyElement
 import cz.judas.jan.advent.leastCommonMultiple
 import cz.judas.jan.advent.parserFor
@@ -20,10 +21,7 @@ object Day20 {
         var numLow = 0L
         var numHigh = 0L
         for (i in 1..1000) {
-            val backlog = ArrayDeque<Pulse>()
-            backlog += Pulse(PulseType.LOW, "button", "broadcaster")
-            while (backlog.isNotEmpty()) {
-                val (pulseType, source, target) = backlog.removeFirst()
+            breadthFirstSearch(Pulse(PulseType.LOW, "button", "broadcaster")) { (pulseType, source, target), backlog ->
                 if (pulseType == PulseType.LOW) {
                     numLow += 1
                 } else {
@@ -63,10 +61,7 @@ object Day20 {
             while (fakeRxModule.peekAndReset() != 1) {
                 counter += 1
 
-                val backlog = ArrayDeque<Pulse>()
-                backlog += Pulse(PulseType.LOW, "button", "broadcaster")
-                while (backlog.isNotEmpty()) {
-                    val (pulseType, source, target) = backlog.removeFirst()
+                breadthFirstSearch(Pulse(PulseType.LOW, "button", "broadcaster")) { (pulseType, source, target), backlog ->
                     modules[target]?.let { module ->
                         backlog += module.handlePulse(pulseType, source).map { Pulse(it.type, target, it.target) }
                     }

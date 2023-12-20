@@ -4,6 +4,7 @@ import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
+import cz.judas.jan.advent.breadthFirstSearch
 
 object Day16 {
     fun part1(input: InputData): Int {
@@ -32,24 +33,21 @@ object Day16 {
         startingDirection: Direction
     ): Int {
         val visited = mutableSetOf<Pair<Coordinate, Direction>>()
-        val queue = ArrayDeque<Pair<Coordinate, Direction>>()
-        queue += startingCoordinate to startingDirection
-        while (queue.isNotEmpty()) {
-            val current = queue.removeFirst()
+        breadthFirstSearch(startingCoordinate to startingDirection) { current, backlog ->
             val (position, direction) = current
             val tile = contraption.getOrNull(position)
             if (current !in visited && tile !== null) {
                 visited += current
                 when (tile) {
-                    '.' -> queue += next(position, direction)
-                    '/' -> queue += when (direction) {
+                    '.' -> backlog += next(position, direction)
+                    '/' -> backlog += when (direction) {
                         Direction.UP -> next(position, Direction.RIGHT)
                         Direction.DOWN -> next(position, Direction.LEFT)
                         Direction.LEFT -> next(position, Direction.DOWN)
                         Direction.RIGHT -> next(position, Direction.UP)
                     }
 
-                    '\\' -> queue += when (direction) {
+                    '\\' -> backlog += when (direction) {
                         Direction.UP -> next(position, Direction.LEFT)
                         Direction.DOWN -> next(position, Direction.RIGHT)
                         Direction.LEFT -> next(position, Direction.UP)
@@ -59,20 +57,20 @@ object Day16 {
                     '-' -> {
                         when (direction) {
                             Direction.UP, Direction.DOWN -> {
-                                queue += next(position, Direction.LEFT)
-                                queue += next(position, Direction.RIGHT)
+                                backlog += next(position, Direction.LEFT)
+                                backlog += next(position, Direction.RIGHT)
                             }
 
-                            Direction.LEFT, Direction.RIGHT -> queue += next(position, direction)
+                            Direction.LEFT, Direction.RIGHT -> backlog += next(position, direction)
                         }
                     }
 
                     '|' -> {
                         when (direction) {
-                            Direction.UP, Direction.DOWN -> queue += next(position, direction)
+                            Direction.UP, Direction.DOWN -> backlog += next(position, direction)
                             Direction.LEFT, Direction.RIGHT -> {
-                                queue += next(position, Direction.UP)
-                                queue += next(position, Direction.DOWN)
+                                backlog += next(position, Direction.UP)
+                                backlog += next(position, Direction.DOWN)
                             }
                         }
                     }
