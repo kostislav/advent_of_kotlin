@@ -101,25 +101,32 @@ fun buildParser(type: KType): Parser<Any> {
                     return SplittingListParser(delimiters, buildParser(itemType))
                 }
             } else if (classifier.isSubclassOf(Enum::class)) {
-                val values =  if (classifier.isSubclassOf(ParsedFromString::class)) {
+                val values = if (classifier.isSubclassOf(ParsedFromString::class)) {
                     classifier.java.enumConstants.associateBy { (it as ParsedFromString).stringValue }
                 } else {
                     classifier.java.enumConstants.associateBy { (it as Enum<*>).name }
                 }
                 return EnumParser(values)
-            } else {
-                val constructor = classifier.primaryConstructor!!
-                return PatterFunctionParser(
-                    buildRegex(classifier.getAnnotation(Pattern::class)!!),
-                    constructor,
-                    constructor.parameters.map { buildParser(it.type) }
+            } else if (classifier.isSealed) {
+                return SealedClassParser(
+                    classifier.sealedSubclasses.map(::parserForClass)
                 )
+            } else {
+                return parserForClass(classifier)
             }
         }
 
         else -> throw RuntimeException("Cannot parse into ${type}")
     }
+}
 
+private fun parserForClass(classifier: KClass<*>): PatterFunctionParser<Any> {
+    val constructor = classifier.primaryConstructor!!
+    return PatterFunctionParser(
+        buildRegex(classifier.getAnnotation(Pattern::class)!!),
+        constructor,
+        constructor.parameters.map { buildParser(it.type) }
+    )
 }
 
 private fun buildRegex(pattern: Pattern): Regex {
@@ -145,13 +152,22 @@ class PatterFunctionParser<T>(
     private val parameterParsers: List<Parser<Any>>,
 ) : Parser<T> {
     override fun parse(input: String): T {
-        val match = pattern.matchEntire(input)
-        if (match === null) {
+        val result = parseOrNull(input)
+        if (result === null) {
             throw RuntimeException("Pattern ${pattern.pattern} did not match ${input}")
+        } else {
+            return result
+        }
+    }
+
+    fun parseOrNull(input: String): T? {
+        val match = pattern.matchEntire(input)
+        return if (match === null) {
+            null
         } else {
             val arguments = parameterParsers.zip(match.groupValues.subList(1))
                 .map { (parser, value) -> parser.parse(value) }
-            return constructor.call(*arguments.toTypedArray())
+            constructor.call(*arguments.toTypedArray())
         }
     }
 }
@@ -246,5 +262,14 @@ class CustomLambdaParser<T>(
 class Function2Wrapper<T1, T2, U>(private val function: (T1, T2) -> U) {
     fun call(param1: T1, param2: T2): U {
         return function(param1, param2)
+    }
+}
+
+
+class SealedClassParser<T>(
+    private val options: List<PatterFunctionParser<T>>
+) : Parser<T> {
+    override fun parse(input: String): T {
+        return options.firstNotNullOf { it.parseOrNull(input) }
     }
 }
