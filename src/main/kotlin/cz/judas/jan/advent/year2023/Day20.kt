@@ -11,18 +11,11 @@ import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.toMultiMap
 
 object Day20 {
-    @Answer("")
+    @Answer("703315117")
     fun part1(input: InputData): Long {
-        val parser = parserFor<ModuleConfiguration>()
-        val moduleConfigurations = input.lines()
-            .map(parser::parse)
-            .associateBy { it.name }
-        val invertedGraph = moduleConfigurations
-            .values
-            .flatMap { module -> module.targets.map { it to module.name } }
-            .toMultiMap()
+        val moduleGraphFactory = parseInput(input)
 
-        val modules = moduleConfigurations.mapValues { it.value.create(invertedGraph) }
+        val modules = moduleGraphFactory.create()
 
         var numLow = 0L
         var numHigh = 0L
@@ -44,34 +37,27 @@ object Day20 {
         return numLow * numHigh
     }
 
-    @Answer("")
+    @Answer("230402300925361")
     fun part2(input: InputData): Long {
-        val parser = parserFor<ModuleConfiguration>()
-        val moduleConfigurations = input.lines()
-            .map(parser::parse)
-            .associateBy { it.name }
-        val invertedGraph = moduleConfigurations
-            .values
-            .flatMap { module -> module.targets.map { it to module.name } }
-            .toMultiMap()
+        val moduleGraphFactory = parseInput(input)
 
-        val subgraphEndpoints = invertedGraph.get(invertedGraph.get("rx").getOnlyElement()).toList()
+        val subgraphEndpoints = moduleGraphFactory.sourcesFor(moduleGraphFactory.sourcesFor("rx").getOnlyElement())
 
 //        PrintWriter(File("/tmp/day20")).use { writer ->
-//            writer.println("strict digraph {") // TODO
+//            writer.println("strict digraph {")
 ////            moduleConfigurations.keys.forEach{
-////                writer.println("  ${it}") // TODO
+////                writer.println("  ${it}")
 ////            }
-////            writer.println() // TODO
+////            writer.println()
 //            moduleConfigurations.forEach{ name, module ->
-//                writer.println("  ${name} -> {${module.targets.joinToString(" ")}}") // TODO
+//                writer.println("  ${name} -> {${module.targets.joinToString(" ")}}")
 //            }
-//            writer.println("}") // TODO
+//            writer.println("}")
 //        }
 
         return subgraphEndpoints.map { subgraphEndpoint ->
             val fakeRxModule = RxModule()
-            val modules = moduleConfigurations.mapValues { it.value.create(invertedGraph) } + mapOf(subgraphEndpoint to fakeRxModule)
+            val modules = moduleGraphFactory.create() + mapOf(subgraphEndpoint to fakeRxModule)
 
             var counter = 0L
             while (fakeRxModule.peekAndReset() != 1) {
@@ -88,6 +74,11 @@ object Day20 {
             }
             counter
         }.leastCommonMultiple()
+    }
+
+    private fun parseInput(input: InputData): ModuleGraphFactory {
+        val parser = parserFor<ModuleConfiguration>()
+        return ModuleGraphFactory(input.lines().map(parser::parse))
     }
 
     @Pattern("([^ ]+) -> (.*)")
@@ -201,6 +192,22 @@ object Day20 {
             val copy = numLowPulses
             numLowPulses = 0
             return copy
+        }
+    }
+
+    class ModuleGraphFactory(modules: Iterable<ModuleConfiguration>) {
+        private val moduleConfigurations = modules.associateBy { it.name }
+        private val invertedGraph = moduleConfigurations
+            .values
+            .flatMap { module -> module.targets.map { it to module.name } }
+            .toMultiMap()
+
+        fun create(): Map<String, Module> {
+            return moduleConfigurations.mapValues { it.value.create(invertedGraph) }
+        }
+
+        fun sourcesFor(moduleName: String): List<String> {
+            return invertedGraph.get(moduleName).toList()
         }
     }
 }
