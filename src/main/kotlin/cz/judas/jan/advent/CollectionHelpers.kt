@@ -80,12 +80,17 @@ fun <K : Comparable<K>, V> List<Pair<K, V>>.toNavigableMap(): NavigableMap<K, V>
     return TreeMap(toMap())
 }
 
-fun <K : Comparable<K>, V> List<Pair<K, V>>.toMultiMap(): Multimap<K, V> {
+fun <K, V> List<Pair<K, V>>.toMultiMap(): HashMultimap<K, V> {
     val result = HashMultimap.create<K, V>()
     for ((key, value) in this) {
         result.put(key, value)
     }
     return result
+}
+
+fun <K, VI, VO> Iterable<Pair<K, VI>>.toMergedMap(valuesForSameKeyTransform: (List<VI>) -> VO): Map<K, VO> {
+    return groupBy( { it.first }, { it.second })
+        .mapValues { valuesForSameKeyTransform(it.value) }
 }
 
 fun <T> Iterable<T>.toMultiSet(): Multiset<T> {
@@ -247,7 +252,7 @@ class LexicographicalListComparator<T>(
 }
 
 class MutableMapWithDefault<K, V>(
-    backing: MutableMap<K, V>,
+    private val backing: MutableMap<K, V>,
     private val defaultValue: (K) -> V
 ) : MutableMap<K, V> by backing {
     fun getOrCreate(key: K): V {
@@ -259,6 +264,10 @@ class MutableMapWithDefault<K, V>(
         } else {
             value
         }
+    }
+
+    override fun toString(): String {
+        return backing.toString()
     }
 }
 
