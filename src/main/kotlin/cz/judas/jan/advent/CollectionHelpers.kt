@@ -89,7 +89,7 @@ fun <K, V> List<Pair<K, V>>.toMultiMap(): HashMultimap<K, V> {
 }
 
 fun <K, VI, VO> Iterable<Pair<K, VI>>.toMergedMap(valuesForSameKeyTransform: (List<VI>) -> VO): Map<K, VO> {
-    return groupBy( { it.first }, { it.second })
+    return groupBy({ it.first }, { it.second })
         .mapValues { valuesForSameKeyTransform(it.value) }
 }
 
@@ -226,9 +226,15 @@ fun <T> Iterable<T>.sumOfInt(selector: (T) -> Int): Int {
 }
 
 fun <T> Sequence<T>.takeWhileIndexed(predicate: (index: Int, T) -> Boolean): Sequence<T> {
-    return mapIndexed{ i, value -> Pair(i, value) }
+    return mapIndexed { i, value -> Pair(i, value) }
         .takeWhile { predicate(it.first, it.second) }
         .map { it.second }
+}
+
+fun <K, V> Map<K, Set<V>>.inverse(): Map<V, Set<K>> {
+    val result = mutableMapWithDefault<V, MutableSet<K>> { mutableSetOf() }
+    forEach { (key, values) -> values.forEach { value -> result.getOrCreate(value) += key } }
+    return result
 }
 
 class LexicographicalListComparator<T>(
