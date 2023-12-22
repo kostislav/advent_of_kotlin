@@ -5,6 +5,7 @@ import com.google.common.collect.DiscreteDomain
 import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.MutableMapWithDefault
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.mapParsing
 import cz.judas.jan.advent.mutableMapWithDefault
@@ -34,6 +35,56 @@ object Day22 {
             }
         }
 
+        compact(bricksPerZ, bricks, possibleContacts)
+        return bricks.filter { (id, brick) ->
+            val supportedBricks = bricksPerZ.getValue(brick.top() + 1).intersect(possibleContacts.getValue(id))
+            supportedBricks
+                .filter { supportedBrickId -> bricksPerZ.getValue(brick.top()).intersect(possibleContacts.getValue(supportedBrickId)).size == 1 }
+                .isEmpty()
+        }.size
+    }
+
+    @Answer("")
+    fun part2(input: InputData): Int {
+//        TODO dedup
+        val bricks = input.lines()
+            .mapParsing("(.+)~(.*)") { startInclusive: Coordinate3d, endInclusive: Coordinate3d -> startInclusive to endInclusive }
+            .mapIndexed { index, (startInclusive, endInclusive) -> index to parseBrick(startInclusive, endInclusive) }
+            .toMap()
+        val possibleContacts = bricks.mapValues { (_, brick) ->
+            bricks.mapNotNull { (otherId, other) ->
+                if (other !== brick && other.canTouch(brick)) {
+                    otherId
+                } else {
+                    null
+                }
+            }.toSet()
+        }
+        val bricksPerZ = mutableMapWithDefault<Int, MutableSet<Int>> { mutableSetOf() }
+        bricks.forEach { (id, brick) ->
+            for (z in ContiguousSet.create(brick.zRange(), DiscreteDomain.integers()).asList()) {
+                bricksPerZ.getOrCreate(z) += id
+            }
+        }
+
+        compact(bricksPerZ, bricks, possibleContacts)
+        return bricks.keys
+            .sumOf { brickId ->
+                compact(
+                    bricksPerZ.mapValues { (it - brickId).toMutableSet() },
+                    bricks.filterKeys { it != brickId }.mapValues { it.value.copy() },
+                    possibleContacts.filterKeys { it != brickId }
+                        .mapValues { it.value - brickId }
+                )
+            }
+    }
+
+    private fun compact(
+        bricksPerZ: MutableMapWithDefault<Int, MutableSet<Int>>,
+        bricks: Map<Int, Brick>,
+        possibleContacts: Map<Int, Set<Int>>
+    ): Int {
+        val fallenBrickIds = mutableSetOf<Int>()
         for (z in 2..bricksPerZ.keys.max()) {
             for (brickId in bricksPerZ.getOrCreate(z).toList()) {
                 val brick = bricks.getValue(brickId)
@@ -45,24 +96,15 @@ object Day22 {
                         bricksPerZ.getValue(currentZ - 1) += brickId
                         currentZ -= 1
                         brick.moveDown()
+                        fallenBrickIds += brickId
                     }
                 }
             }
         }
-        return bricks.filter { (id, brick) ->
-            val supportedBricks = bricksPerZ.getValue(brick.top() + 1).intersect(possibleContacts.getValue(id))
-            supportedBricks
-                .filter { supportedBrickId -> bricksPerZ.getValue(brick.top()).intersect(possibleContacts.getValue(supportedBrickId)).size == 1 }
-                .isEmpty()
-        }.size
+        return fallenBrickIds.size
     }
 
-    @Answer("")
-    fun part2(input: InputData): Int {
-        return 0
-    }
-
-    fun parseBrick(startInclusive: Coordinate3d, endInclusive: Coordinate3d): Brick {
+    private fun parseBrick(startInclusive: Coordinate3d, endInclusive: Coordinate3d): Brick {
         return Brick(
             Range.closed(startInclusive.x, endInclusive.x),
             Range.closed(startInclusive.y, endInclusive.y),
@@ -91,6 +133,10 @@ object Day22 {
 
         fun top(): Int {
             return bottom + height - 1
+        }
+
+        fun copy(): Brick {
+            return Brick(x, y, height, bottom)
         }
     }
 

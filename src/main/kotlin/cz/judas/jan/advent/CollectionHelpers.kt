@@ -269,6 +269,13 @@ class MutableMapWithDefault<K, V>(
     override fun toString(): String {
         return backing.toString()
     }
+
+    fun mapValues(transformation: (V) -> V): MutableMapWithDefault<K, V> {
+        return MutableMapWithDefault(
+            backing.mapValues { transformation(it.value) }.toMutableMap(),
+            defaultValue
+        )
+    }
 }
 
 fun <K, V> mutableMapWithDefault(defaultValue: (K) -> V): MutableMapWithDefault<K, V> {
