@@ -61,6 +61,12 @@ class TwoDimensionalArray<out T>(
             .first { predicate(get(it)) }
     }
 
+    fun last(predicate: (T) -> Boolean): Coordinate {
+        return (0..<numRows).reversed().asSequence()
+            .flatMap { row -> (0..<numColumns).reversed().asSequence().map { Coordinate(row, it) } }
+            .first { predicate(get(it)) }
+    }
+
     fun rowIndices(): IntRange {
         return 0..<numRows
     }
@@ -119,6 +125,11 @@ class TwoDimensionalArray<out T>(
 data class Coordinate(val row: Int, val column: Int) {
     operator fun plus(delta: Vector2d): Coordinate {
         return Coordinate(row + delta.rows, column + delta.columns)
+    }
+
+//    TODO use more
+    operator fun plus(delta: Direction): Coordinate {
+        return plus(delta.movement)
     }
 
     fun manhattanDistance(other: Coordinate): Int {
