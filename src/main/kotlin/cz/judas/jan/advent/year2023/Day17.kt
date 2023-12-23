@@ -5,7 +5,6 @@ import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.RelativeDirection
-import cz.judas.jan.advent.TwoDimensionalArray
 import cz.judas.jan.advent.shortestPath
 
 object Day17 {
@@ -20,7 +19,7 @@ object Day17 {
     }
 
     private fun calculate(input: InputData, minStraight: Int, maxStraight: Int): Int {
-        val city = TwoDimensionalArray.charsFromLines(input.lines()).map { it.digitToInt() }.materialized()
+        val city = input.as2dArray().map { it.digitToInt() }.materialized()
         val virtualStartingNode = Hypercoordinate(Coordinate(-1, -1), Direction.LEFT, 0)
         val targetPosition = Coordinate(city.numRows - 1, city.numColumns - 1)
         val virtualTargetNode = Hypercoordinate(Coordinate(city.numRows, city.numColumns), Direction.RIGHT, 0)

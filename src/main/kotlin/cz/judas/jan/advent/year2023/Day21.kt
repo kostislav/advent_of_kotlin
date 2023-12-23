@@ -4,7 +4,6 @@ import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
-import cz.judas.jan.advent.TwoDimensionalArray
 import cz.judas.jan.advent.breadthFirstSearch
 
 object Day21 {
@@ -14,7 +13,7 @@ object Day21 {
     }
 
     fun part1(input: InputData, steps: Int): Int {
-        val garden = TwoDimensionalArray.charsFromLines(input.lines())
+        val garden = input.as2dArray()
         val startingPosition = garden.first { it == 'S' }
         val stepMod = steps % 2
         val visited = mutableSetOf<Coordinate>()

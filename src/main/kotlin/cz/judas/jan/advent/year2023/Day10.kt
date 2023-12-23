@@ -5,7 +5,6 @@ import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.PathSegment
-import cz.judas.jan.advent.TwoDimensionalArray
 import cz.judas.jan.advent.calculateArea
 import cz.judas.jan.advent.takeWhileIndexed
 
@@ -33,7 +32,7 @@ object Day10 {
             '.' to emptySet()
         )
 
-        val diagram = TwoDimensionalArray.charsFromLines(input.lines())
+        val diagram = input.as2dArray()
         val startingPosition = diagram.first { it == 'S' }
 
         val startingDirections = Direction.entries

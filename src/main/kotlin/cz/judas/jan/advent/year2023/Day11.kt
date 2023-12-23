@@ -2,7 +2,6 @@ package cz.judas.jan.advent.year2023
 
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
-import cz.judas.jan.advent.TwoDimensionalArray
 import cz.judas.jan.advent.Vector2d
 import cz.judas.jan.advent.cartesianProduct
 
@@ -19,7 +18,7 @@ object Day11 {
 
     fun expand(input: InputData, factor: Int): Long {
         val toAdd = factor - 1
-        val image = TwoDimensionalArray.charsFromLines(input.lines())
+        val image = input.as2dArray()
         val emptyRows = image.rows()
             .mapIndexedNotNull { i, row -> if (row.all { it == '.' }) i else null }
             .toSortedSet()

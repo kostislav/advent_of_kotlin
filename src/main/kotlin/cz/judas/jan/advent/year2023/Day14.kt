@@ -8,13 +8,13 @@ import cz.judas.jan.advent.TwoDimensionalArray
 object Day14 {
     @Answer("109833")
     fun part1(input: InputData): Int {
-        val platform = TwoDimensionalArray.charsFromLines(input.lines())
+        val platform = input.as2dArray()
         return load(platform.tilt())
     }
 
     @Answer("99875")
     fun part2(input: InputData): Int {
-        var platform = TwoDimensionalArray.charsFromLines(input.lines())
+        var platform = input.as2dArray()
         val history = mutableListOf<Int>()
         for (i in 0..1000000000L) {
             platform = spin(platform)

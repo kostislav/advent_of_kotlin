@@ -8,12 +8,12 @@ import cz.judas.jan.advent.breadthFirstSearch
 
 object Day16 {
     fun part1(input: InputData): Int {
-        val contraption = TwoDimensionalArray.charsFromLines(input.lines())
+        val contraption = input.as2dArray()
         return numEnergized(contraption, Coordinate(0, 0), Direction.RIGHT)
     }
 
     fun part2(input: InputData): Int {
-        val contraption = TwoDimensionalArray.charsFromLines(input.lines())
+        val contraption = input.as2dArray()
         return listOf(
             contraption.rowIndices().map { row -> Coordinate(row, 0) to Direction.RIGHT },
             contraption.rowIndices().map { row -> Coordinate(row, contraption.numColumns - 1) to Direction.LEFT },
