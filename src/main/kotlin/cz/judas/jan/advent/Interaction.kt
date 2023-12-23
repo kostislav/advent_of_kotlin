@@ -25,6 +25,11 @@ class InputData(private val source: () -> Reader) {
         return source().readText()
     }
 
+//    TODO use more
+    fun as2dArray(): TwoDimensionalArray<Char> {
+        return TwoDimensionalArray.charsFromLines(lines())
+    }
+
     companion object {
         fun fromString(contents: String): InputData {
             return InputData { StringReader(contents) }

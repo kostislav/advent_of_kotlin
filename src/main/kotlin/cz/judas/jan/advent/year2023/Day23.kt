@@ -6,12 +6,14 @@ import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.TwoDimensionalArray
 import cz.judas.jan.advent.breadthFirstSearch
+import cz.judas.jan.advent.getOnlyElement
 import cz.judas.jan.advent.mutableMapWithDefault
+import cz.judas.jan.advent.recursive
 
 object Day23 {
-    @Answer("")
+    @Answer("2370")
     fun part1(input: InputData): Int {
-        val map = TwoDimensionalArray.charsFromLines(input.lines())
+        val map = input.as2dArray()
         val start = map.first { it == '.' }
         val end = map.last { it == '.' }
         val slopes = mapOf(
@@ -38,6 +40,7 @@ object Day23 {
                 }
             }
         }
+
         val longestPaths = mutableMapOf(
             start to 0
         )
@@ -49,49 +52,76 @@ object Day23 {
         return longestPaths.getValue(end)
     }
 
-    @Answer("")
+    @Answer("6546")
     fun part2(input: InputData): Int {
-        return 0
+        val map = input.as2dArray()
+        val start = map.first { it == '.' }
+        val end = map.last { it == '.' }
+        val edgeList = buildGraph(map, start, end, null)
+        val edges = mutableMapWithDefault<Coordinate, MutableMap<Coordinate, Int>> { mutableMapOf() }
+        for (edge in edgeList) {
+            edges.getOrCreate(edge.end)[edge.start] = edge.weight
+            edges.getOrCreate(edge.start)[edge.end] = edge.weight
+        }
+        val nodeMasks = edges.keys.mapIndexed{index, node -> node to (1L shl index) }.toMap()
+
+        return recursive(start, 0L, cached = false) { current, visited, recursion ->
+            if (current == end) {
+                0
+            } else {
+                var longestPath: Int? = null
+                for ((neighbor, weight) in edges.getValue(current)) {
+                    val neighborMask = nodeMasks.getValue(neighbor)
+                    if (neighborMask and visited == 0L) {
+                        val longestPathFromNeighbor = recursion(neighbor, visited + neighborMask)
+                        if (longestPathFromNeighbor !== null) {
+                            val longestPathThroughNeighbor = weight + longestPathFromNeighbor
+                            if (longestPath === null || longestPath < longestPathThroughNeighbor) {
+                                longestPath = longestPathThroughNeighbor
+                            }
+                        }
+                    }
+                }
+                longestPath
+            }
+        }!!
     }
 
     private fun buildGraph(
         map: TwoDimensionalArray<Char>,
         start: Coordinate,
         end: Coordinate,
-        slopes: Map<Char, Direction>
-    ): MutableList<Edge> {
+        slopes: Map<Char, Direction>?
+    ): List<Edge> {
         val edges = mutableListOf<Edge>()
-        val visited = mutableSetOf<Coordinate>()
-        val backlog = mutableListOf(Edge(start, start + Direction.DOWN, 1))
-        visited += start
-        while (backlog.isNotEmpty()) {
-            val partialEdge = backlog.removeFirst()
-            val (previous, current, weight) = partialEdge
-            if (current == end) {
-                edges += partialEdge
-            } else {
-                val possibleDirections = Direction.entries.filter { map[current + it] != '#' }
-                if (possibleDirections.size > 2) {
-                    edges += partialEdge
-                } else {
-                    visited += current
-                }
-
-                val (nextStart, nextWeight) = if (possibleDirections.size > 2) current to 1 else previous to weight + 1
-                for (direction in possibleDirections) {
-                    val nextPosition = current + direction
-                    if (nextPosition !in visited) {
-                        val nextSymbol = map[nextPosition]
-                        if (nextSymbol == '.') {
-                            backlog += Edge(nextStart, nextPosition, nextWeight)
-                        } else if (nextSymbol != '#') {
-                            val slope = slopes.getValue(nextSymbol)
-                            if (slope != direction.inverse()) {
-                                backlog += Edge(nextStart, nextPosition + slope, nextWeight + 1)
+        val intersections = mutableSetOf<Coordinate>()
+        val visited = mutableSetOf(start)
+        breadthFirstSearch(start to Direction.DOWN) { (currentPathStart, startingDirection), backlog ->
+            var length = 1
+            var current = currentPathStart + startingDirection
+            if (current !in visited) {
+                while (current != end && current !in intersections) {
+                    val possibleDirections = Direction.entries.filter { (map.getOrNull(current + it) ?: '#') != '#' }
+                    if (possibleDirections.size > 2) {
+                        intersections += current
+                        for (nextDirection in possibleDirections) {
+                            val nextPosition = current + nextDirection
+                            if (nextPosition !in visited && (slopes === null || nextDirection.inverse() != slopes[map[nextPosition]])) {
+                                backlog += current to nextDirection
                             }
+                        }
+                    } else {
+                        visited += current
+                        val remainingDirections = possibleDirections.filter { current + it !in visited && current + it != currentPathStart }
+                        val nextDirection = remainingDirections.getOnlyElement()
+                        val nextPosition = current + nextDirection
+                        if (slopes === null || nextDirection.inverse() != slopes[map[nextPosition]]) {
+                            current += nextDirection
+                            length += 1
                         }
                     }
                 }
+                edges += Edge(currentPathStart, current, length)
             }
         }
         return edges
