@@ -43,6 +43,11 @@ fun <T1, T2> List<T1>.cartesianProduct(other: List<T2>): Sequence<Pair<T1, T2>> 
     return this.asSequence().flatMap { item1 -> otherAsSequence.map { item2 -> Pair(item1, item2) } }
 }
 
+fun <T> List<T>.unorderedPairs(): Sequence<Pair<T, T>> {
+    return asSequence()
+        .flatMapIndexed { i, value -> subList(0, i).asSequence().map { value to it } }
+}
+
 fun <T> List<T>.splitOnOnly(delimiter: (T) -> Boolean): Pair<List<T>, List<T>> {
     val parts = splitOn(delimiter)
     if (parts.size == 2) {

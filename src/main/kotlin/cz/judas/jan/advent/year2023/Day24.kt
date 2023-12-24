@@ -4,20 +4,20 @@ import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
-import cz.judas.jan.advent.cartesianProduct
 import cz.judas.jan.advent.parserFor
+import cz.judas.jan.advent.unorderedPairs
 
 object Day24 {
-    @Answer("")
+    @Answer("12783")
     fun part1(input: InputData): Int {
         val parser = parserFor<Hailstone>()
         val hailstones = input.lines()
             .map(parser::parse)
         val range = Range.closed(200000000000000.0, 400000000000000.0)
-        return hailstones.cartesianProduct(hailstones)
+        return hailstones.unorderedPairs()
             .count { (first, second) ->
                 first.futureIntersectionWith(second)?.let { range.contains(it.x) && range.contains(it.y) } ?: false
-            } / 2
+            }
     }
 
     @Answer("")

@@ -3,7 +3,7 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Vector2d
-import cz.judas.jan.advent.cartesianProduct
+import cz.judas.jan.advent.unorderedPairs
 
 object Day11 {
     @Answer("9591768")
@@ -34,7 +34,7 @@ object Day11 {
                 )
             }.toList()
 
-        return galaxies.cartesianProduct(galaxies)
-            .sumOf { (first, second) -> first.manhattanDistance(second).toLong() } / 2
+        return galaxies.unorderedPairs()
+            .sumOf { (first, second) -> first.manhattanDistance(second).toLong() }
     }
 }
