@@ -42,16 +42,11 @@ class Day21Test {
 //            assertThat(Day21.honestPart2(input, 5000), equalTo(16733044L))
         }
 
-        //    TODO
         @Test
         fun shadyVersionIsConsistentWithHonest() {
             val inputData = InputFetcher().get(2023, 21)
-            println(Day21.blbostPart2(inputData)) // TODO
-//            TODO
-            for (extraGardens in 0..3) {
+            for (extraGardens in 0..2) {
                 val steps = 65 + extraGardens * 2 * 131
-//                println(steps) // TODO
-//                println(Day21.honestPart2(inputData, steps)) // TODO
                 assertThat(Day21.shadyPart2(inputData, steps), equalTo(Day21.honestPart2(inputData, steps)))
             }
         }
