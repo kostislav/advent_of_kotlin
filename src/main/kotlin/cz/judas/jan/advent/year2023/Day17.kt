@@ -5,7 +5,7 @@ import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.Direction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.RelativeDirection
-import cz.judas.jan.advent.shortestPath
+import cz.judas.jan.advent.shortestPathLength
 
 object Day17 {
     @Answer("902")
@@ -23,7 +23,7 @@ object Day17 {
         val virtualStartingNode = Hypercoordinate(Coordinate(-1, -1), Direction.LEFT, 0)
         val targetPosition = Coordinate(city.numRows - 1, city.numColumns - 1)
         val virtualTargetNode = Hypercoordinate(Coordinate(city.numRows, city.numColumns), Direction.RIGHT, 0)
-        return shortestPath(virtualStartingNode, virtualTargetNode) { current ->
+        return shortestPathLength(virtualStartingNode, virtualTargetNode) { current ->
             if (current == virtualStartingNode) {
                 mapOf(
                     Hypercoordinate(Coordinate(0, 0), Direction.RIGHT, 1) to 0,

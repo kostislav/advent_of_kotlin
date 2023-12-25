@@ -60,7 +60,7 @@ enum class RelativeDirection {
     RIGHT
 }
 
-fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N, Int>): Int {
+fun <N> shortestPathLength(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N, Int>): Int {
     val queue = PriorityQueue<BacklogNode<N>>(Comparator.comparing { it.pathLength })
     val done = mutableSetOf<N>()
     queue += BacklogNode(startingNode, 0)
@@ -74,6 +74,33 @@ fun <N> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N,
             done += current
             for ((next, weight) in edgeSupplier(current)) {
                 queue += BacklogNode(next, length + weight)
+            }
+        }
+    }
+    throw RuntimeException("Could not find path")
+}
+
+fun <N : Any> shortestPath(startingNode: N, targetNode: N, edgeSupplier: (N) -> Map<N, Int>): List<N> {
+    val queue = PriorityQueue<BacklogNodeWithBackReference<N>>(Comparator.comparing { it.pathLength })
+    val done = mutableMapOf<N, N>()
+    queue += BacklogNodeWithBackReference(startingNode, startingNode, 0)
+
+    while (queue.isNotEmpty()) {
+        val (current, previous, length) = queue.remove()
+        if (current !in done) {
+            done[current] = previous
+            if (current == targetNode) {
+                return unfold(current) { node ->
+                    val next = done.getValue(node)
+                    if (next == node) {
+                        null
+                    } else {
+                        next
+                    }
+                }
+            }
+            for ((next, weight) in edgeSupplier(current)) {
+                queue += BacklogNodeWithBackReference(next, current, length + weight)
             }
         }
     }
@@ -122,3 +149,5 @@ fun calculateArea(steps: List<PathSegment>, includeBorder: Boolean): Long {
 data class PathSegment(val direction: Direction, val amount: Int)
 
 private data class BacklogNode<T>(val node: T, val pathLength: Int)
+
+private data class BacklogNodeWithBackReference<T>(val node: T, val previous: T, val pathLength: Int)

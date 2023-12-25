@@ -242,6 +242,14 @@ fun <K, V> Map<K, Set<V>>.inverse(): Map<V, Set<K>> {
     return result
 }
 
+fun <T> Iterable<T>.histogram(): Map<T, Int> {
+    val result = mutableMapWithDefault<T, MutableInt> { MutableInt(0) }
+    for (item in this) {
+        result.getOrCreate(item).increment()
+    }
+    return result.mapValues { it.value.value }
+}
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
 ) : Comparator<List<T>> {
@@ -280,15 +288,14 @@ class MutableMapWithDefault<K, V>(
     override fun toString(): String {
         return backing.toString()
     }
-
-    fun mapValues(transformation: (V) -> V): MutableMapWithDefault<K, V> {
-        return MutableMapWithDefault(
-            backing.mapValues { transformation(it.value) }.toMutableMap(),
-            defaultValue
-        )
-    }
 }
 
 fun <K, V> mutableMapWithDefault(defaultValue: (K) -> V): MutableMapWithDefault<K, V> {
     return MutableMapWithDefault(mutableMapOf(), defaultValue)
+}
+
+data class MutableInt(var value: Int) {
+    fun increment() {
+        value += 1
+    }
 }
