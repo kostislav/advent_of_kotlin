@@ -1,7 +1,9 @@
 package cz.judas.jan.advent.year2023
 
+import cz.judas.jan.advent.InputData
 import org.hamcrest.Description
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.hamcrest.TypeSafeMatcher
 import org.junit.jupiter.api.Test
@@ -15,13 +17,21 @@ class Day24Test {
         assertThat(hailstone(19, 13, 30, -2, 1, -2).futureIntersectionWith(hailstone(20, 19, 15, 1, -5, -3)), nullValue())
         assertThat(hailstone(18, 19, 22, -1, -1, -2).futureIntersectionWith(hailstone(20, 25, 34, -2, -2, -4)), nullValue())
     }
-//
-//    @Test
-//    fun part2() {
-//        assertThat(Day24.part2(input), equalTo(0))
-//    }
 
-//    private fun assertIntersects()
+    @Test
+    fun part2() {
+        val input = InputData.fromString(
+            """
+            19, 13, 30 @ -2, 1, -2
+            18, 19, 22 @ -1, -1, -2
+            20, 25, 34 @ -2, -2, -4
+            12, 31, 28 @ -1, -2, -1
+            20, 19, 15 @ 1, -5, -3
+    """.trimIndent()
+        )
+
+        assertThat(Day24.part2(input), equalTo(47L))
+    }
 
     private fun hailstone(x: Int, y: Int, z: Int, vx: Int, vy: Int, vz: Int): Day24.Hailstone {
         return Day24.Hailstone(Day24.Vector3d(x.toLong(), y.toLong(), z.toLong()), Day24.Vector3d(vx.toLong(), vy.toLong(), vz.toLong()))
