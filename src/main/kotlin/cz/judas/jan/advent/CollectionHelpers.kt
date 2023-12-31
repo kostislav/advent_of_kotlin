@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.HashMultiset
 import com.google.common.collect.ImmutableBiMap
+import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multiset
@@ -108,6 +109,10 @@ fun <T> Multiset<T>.asMap(): Map<T, Int> {
 
 fun <T> multiSetOf(vararg values: T): Multiset<T> {
     return HashMultiset.create<T>(values.toList())
+}
+
+fun <T> emptyMultiSet(): Multiset<T> {
+    return ImmutableMultiset.of()
 }
 
 fun <K : Any, V : Any> biMapOf(vararg pairs: Pair<K, V>): BiMap<K, V> {
@@ -248,6 +253,12 @@ fun <T> Iterable<T>.histogram(): Map<T, Int> {
         result.getOrCreate(item).increment()
     }
     return result.mapValues { it.value.value }
+}
+
+operator fun <T> Multiset<T>.plus(other: Multiset<T>): Multiset<T> {
+    val result = HashMultiset.create<T>(this)
+    result.addAll(other)
+    return result
 }
 
 class LexicographicalListComparator<T>(

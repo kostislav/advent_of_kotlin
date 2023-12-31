@@ -1,6 +1,7 @@
 package cz.judas.jan.advent.year2023
 
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.Vector
 import org.hamcrest.Description
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
@@ -27,7 +28,7 @@ class Day24Test {
             20, 25, 34 @ -2, -2, -4
             12, 31, 28 @ -1, -2, -1
             20, 19, 15 @ 1, -5, -3
-    """.trimIndent()
+        """.trimIndent()
         )
 
         assertThat(Day24.part2(input), equalTo(47L))
@@ -44,13 +45,13 @@ class Day24Test {
     private class Vector2dRealCloseToMatcher(
         private val expectedX: Double,
         private val expectedY: Double
-    ): TypeSafeMatcher<Day24.Vector2dReal>() {
+    ): TypeSafeMatcher<Vector>() {
         override fun describeTo(description: Description) {
             description.appendText("(${expectedX}, ${expectedY})")
         }
 
-        override fun matchesSafely(item: Day24.Vector2dReal): Boolean {
-            return abs(item.x - expectedX) < 0.001 && abs(item.y - expectedY) < 0.001
+        override fun matchesSafely(item: Vector): Boolean {
+            return abs(item[0] - expectedX) < 0.001 && abs(item[1] - expectedY) < 0.001
         }
     }
 }
