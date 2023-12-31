@@ -3,6 +3,7 @@ package cz.judas.jan.advent.year2023
 import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.Constant
+import cz.judas.jan.advent.Fraction
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
 import cz.judas.jan.advent.SymbolicEquation
@@ -10,6 +11,7 @@ import cz.judas.jan.advent.Variable
 import cz.judas.jan.advent.Vector
 import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.solveLinearSystem
+import cz.judas.jan.advent.toFraction
 import cz.judas.jan.advent.unorderedPairs
 
 object Day24 {
@@ -22,7 +24,7 @@ object Day24 {
         val range = Range.closed(200000000000000.0, 400000000000000.0)
         return hailstones.unorderedPairs()
             .count { (first, second) ->
-                first.futureIntersectionWith(second)?.let { range.contains(it[0]) && range.contains(it[1]) } ?: false
+                first.futureIntersectionWith(second)?.let { range.contains(it[0].toDouble()) && range.contains(it[1].toDouble()) } ?: false
             }
     }
 
@@ -71,10 +73,10 @@ object Day24 {
             )
             if (solution !== null) {
                 val actualT1 = solution.getValue(t1)
-                if (actualT1 > 0 && solution.getValue(t2) > 0) {
+                if (actualT1 > Fraction.ZERO && solution.getValue(t2) > Fraction.ZERO) {
                     return Vector(
-                        position.x + actualT1 * velocity.x,
-                        position.y + actualT1 * velocity.y
+                        position.x.toFraction() + actualT1 * velocity.x,
+                        position.y.toFraction() + actualT1 * velocity.y
                     )
                 }
             }

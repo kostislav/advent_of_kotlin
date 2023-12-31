@@ -51,7 +51,7 @@ class Day24Test {
         }
 
         override fun matchesSafely(item: Vector): Boolean {
-            return abs(item[0] - expectedX) < 0.001 && abs(item[1] - expectedY) < 0.001
+            return abs(item[0].toDouble() - expectedX) < 0.001 && abs(item[1].toDouble() - expectedY) < 0.001
         }
     }
 }
