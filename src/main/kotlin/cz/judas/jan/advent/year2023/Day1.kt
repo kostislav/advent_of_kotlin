@@ -1,12 +1,15 @@
 package cz.judas.jan.advent.year2023
 
+import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.Digit
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.StringFinder
+import cz.judas.jan.advent.associateByMultiple
 import cz.judas.jan.advent.findAll
 import cz.judas.jan.advent.pickByIndex
 
 object Day1 {
+    @Answer("54597")
     fun part1(input: InputData): Int {
         return input.lines()
             .sumOf { line ->
@@ -17,9 +20,11 @@ object Day1 {
             }
     }
 
+    @Answer("54504")
     fun part2(input: InputData): Int {
-        val digits = Digit.entries.associate { it.value.toString() to it.value } +
-                Digit.entries.filter { it != Digit.ZERO }.associate { it.name.lowercase() to it.value }
+        val digits = Digit.entries.associateByMultiple { listOf(it.value.toString(), it.name.lowercase()) }
+            .filterKeys { it != "zero" }
+            .mapValues { it.value.value }
         val finder = StringFinder.forStrings(digits.keys, overlapping = true)
 
         return input.lines()

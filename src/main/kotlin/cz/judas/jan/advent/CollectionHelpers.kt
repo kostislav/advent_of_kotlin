@@ -261,6 +261,16 @@ operator fun <T> Multiset<T>.plus(other: Multiset<T>): Multiset<T> {
     return result
 }
 
+fun <T, K> Iterable<T>.associateByMultiple(keySelector: (T) -> Iterable<K>): Map<K, T> {
+    val destination = mutableMapOf<K, T>()
+    for (element in this) {
+        for (key in keySelector(element)) {
+            destination.put(key, element)
+        }
+    }
+    return destination
+}
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
 ) : Comparator<List<T>> {
