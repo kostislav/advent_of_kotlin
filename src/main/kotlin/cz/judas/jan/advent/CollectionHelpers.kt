@@ -271,6 +271,24 @@ fun <T, K> Iterable<T>.associateByMultiple(keySelector: (T) -> Iterable<K>): Map
     return destination
 }
 
+fun <T, O> List<T>.translate(lookup: Map<T, O>): List<O> {
+    return map { lookup.getValue(it) }
+}
+
+fun <T> Iterable<T>.pairWithIndex(startingIndex: Int = 0): List<Pair<Int, T>> {
+    return mapIndexedFrom(startingIndex) { index, item -> index to item }
+}
+
+fun <T1, T2, R> Iterable<Pair<T1, T2>>.scanSecond(initial: R, operation: (acc: R, T2) -> R): List<Pair<T1, R>> {
+    val result = mutableListOf<Pair<T1, R>>()
+    var accumulator = initial
+    for (element in this) {
+        accumulator = operation(accumulator, element.second)
+        result.add(Pair(element.first, accumulator))
+    }
+    return result
+}
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
 ) : Comparator<List<T>> {

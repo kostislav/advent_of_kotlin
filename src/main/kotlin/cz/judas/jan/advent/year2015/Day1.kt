@@ -1,29 +1,26 @@
 package cz.judas.jan.advent.year2015
 
 import cz.judas.jan.advent.InputData
+import cz.judas.jan.advent.pairWithIndex
+import cz.judas.jan.advent.scanSecond
+import cz.judas.jan.advent.translate
 
 object Day1 {
+    private val options = mapOf(
+        '(' to 1,
+        ')' to -1
+    )
+
     fun part1(input: InputData): Int {
-        return input.asString()
-            .fold(0) { current, symbol -> current + direction(symbol) }
+        return input.asString().translate(options).sum()
     }
 
     fun part2(input: InputData): Int {
         return input.asString()
-            .scan(IndexedFloor(0, 0)) { current, symbol -> current.move(direction(symbol))}
-            .find { it.floor == -1 }!!
-            .index
-    }
-
-    private fun direction(symbol: Char): Int {
-        return when(symbol) {
-            '(' -> 1
-            ')' -> -1
-            else -> throw RuntimeException("Unexpected symbol ${symbol}")
-        }
-    }
-
-    private data class IndexedFloor(val index: Int, val floor: Int) {
-        fun move(diff: Int) = IndexedFloor(index + 1, floor + diff)
+            .translate(options)
+            .pairWithIndex(startingIndex = 1)
+            .scanSecond(0, Int::plus)
+            .find { it.second == -1 }!!
+            .first
     }
 }

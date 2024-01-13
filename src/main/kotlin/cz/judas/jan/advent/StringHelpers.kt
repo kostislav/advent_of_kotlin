@@ -36,6 +36,10 @@ fun <T> String.tokenize(tokenizer: StringTokenizer<T>): Sequence<Token<T>> {
     return tokenizer.tokenize(this)
 }
 
+fun <O> String.translate(lookup: Map<Char, O>): List<O> {
+    return map { lookup.getValue(it) }
+}
+
 class StringTokenizer<T>(
     private val regex: Regex,
     private val groupProcessors: List<(String) -> T>
