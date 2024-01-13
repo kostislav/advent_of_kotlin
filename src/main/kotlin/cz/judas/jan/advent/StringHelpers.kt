@@ -1,5 +1,6 @@
 package cz.judas.jan.advent
 
+import com.google.common.collect.Range
 import org.ahocorasick.trie.Trie
 
 fun String.splitInHalf(): Pair<String, String> {
@@ -50,7 +51,7 @@ class StringTokenizer<T>(
                 for (i in groupProcessors.indices) {
                     val group = matchResult.groups[i + 1]
                     if (group !== null) {
-                        yield(Token(group.range, groupProcessors[i](group.value)))
+                        yield(Token(Range.closed(group.range.first, group.range.last), groupProcessors[i](group.value)))
                     }
                 }
             }
@@ -67,7 +68,7 @@ class StringTokenizer<T>(
     }
 }
 
-data class Token<T>(val position: IntRange, val content: T)
+data class Token<T>(val position: Range<Int>, val content: T)
 
 class StringFinder(private val trie: Trie) {
     fun findAll(input: String): List<Pair<String, Int>> {

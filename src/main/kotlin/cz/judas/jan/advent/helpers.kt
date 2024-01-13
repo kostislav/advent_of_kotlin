@@ -23,6 +23,22 @@ fun Range<Long>.length(): Long {
     return upperEndpoint() - lowerEndpoint() + 1
 }
 
+fun Range<Int>.length(): Int {
+    return upperEndpoint() - lowerEndpoint() + 1
+}
+
+fun Range<Int>.asSequence(): Sequence<Int> {
+    return sequence {
+        if (lowerBoundType() == BoundType.CLOSED) {
+            yield(lowerEndpoint())
+        }
+        yieldAll(IntRange(lowerEndpoint() + 1, upperEndpoint() + 1))
+        if (upperBoundType() == BoundType.CLOSED) {
+            yield(upperEndpoint())
+        }
+    }
+}
+
 fun <I1, I2, O> recursive(input1: I1, input2: I2, cached: Boolean = false, calculation: (I1, I2, (I1, I2) -> O) -> O): O {
     return if (cached) {
         recursive(Pair(input1, input2), cached) { (next1, next2), recursion ->

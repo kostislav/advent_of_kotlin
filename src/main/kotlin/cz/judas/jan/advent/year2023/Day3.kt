@@ -1,78 +1,65 @@
 package cz.judas.jan.advent.year2023
 
+import com.google.common.collect.Range
+import cz.judas.jan.advent.Answer
+import cz.judas.jan.advent.Coordinate
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.StringTokenizer
-import cz.judas.jan.advent.UndirectedGraph
+import cz.judas.jan.advent.TwoDimensionalArray
+import cz.judas.jan.advent.asSequence
+import cz.judas.jan.advent.length
 import cz.judas.jan.advent.product
+import cz.judas.jan.advent.times
 import cz.judas.jan.advent.tokenize
-import java.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.typeOf
 
 object Day3 {
+    @Answer("522726")
     fun part1(input: InputData): Int {
-        val graph = buildGraph(input)
+        val schematic = readInput(input)
 
-        return graph.nodes
-            .sumOf { node ->
-                if (
-                    node.content is BlockContent.Number
-                    && graph.neighborsOf(node).any { neighbor -> neighbor.content is BlockContent.Symbol }
-                ) {
-                    node.content.value
-                } else {
-                    0
-                }
-            }
+        return schematic.values()
+            .toSet()
+            .mapNotNull { it.filterContentByType<BlockContent.Number>() }
+            .filter { number -> number.adjacent().any { schematic.getOrNull(it)?.content is BlockContent.Symbol } }
+            .sumOf { it.content.value }
     }
 
+    @Answer("81721933")
     fun part2(input: InputData): Int {
-        val graph = buildGraph(input)
+        val schematic = readInput(input)
 
-        return graph.nodes
-            .sumOf { node ->
-                if (node.content == BlockContent.Symbol('*')) {
-                    val neighborNumbers = graph.neighborsOf(node)
-                        .map { it.content }
-                        .filterIsInstance(BlockContent.Number::class.java)
+        return schematic.values()
+            .mapNotNull { it.filterContentByType<BlockContent.Symbol>() }
+            .sumOf { symbol ->
+                val adjacentNumbers = symbol.adjacent()
+                    .mapNotNull { schematic.getOrNull(it)?.filterContentByType<BlockContent.Number>() }
+                    .toSet()
 
-                    if (neighborNumbers.size == 2) {
-                        neighborNumbers.map { it.value }.product()
-                    } else {
-                        0
-                    }
+                if (adjacentNumbers.size == 2) {
+                    adjacentNumbers.map { it.content.value }.product()
                 } else {
                     0
                 }
             }
     }
 
-    private fun buildGraph(input: InputData): UndirectedGraph<SchemaNode> {
+    private fun readInput(input: InputData): TwoDimensionalArray<SchemaNode> {
         val tokenizer = StringTokenizer.create(mapOf(
             "\\d+" to { BlockContent.Number(it.toInt()) },
             "\\." to { BlockContent.Nothing },
             "." to { BlockContent.Symbol(it[0]) }
         ))
 
-        val graphBuilder = UndirectedGraph.builder<SchemaNode>()
-        var previousLine: NavigableMap<Int, SchemaNode> = TreeMap()
-        input.lines().forEachIndexed { i, line ->
-            val thisLine: NavigableMap<Int, SchemaNode> = TreeMap()
-            val tokens = line.tokenize(tokenizer)
-            for (token in tokens) {
-                val node = SchemaNode(i, token.position, token.content)
-                for (neighbor in previousLine.subMap(
-                    previousLine.floorKey(token.position.first - 1) ?: 0,
-                    true,
-                    previousLine.ceilingKey(token.position.last + 1) ?: line.length,
-                    true
-                ).values) {
-                    graphBuilder.addEdge(neighbor, node)
+        return TwoDimensionalArray.create(
+            input.lines()
+                .mapIndexed { row, line ->
+                    line.tokenize(tokenizer)
+                        .flatMap { token -> listOf(SchemaNode(row, token.position, token.content)) * token.position.length() }
+                        .toList()
                 }
-                thisLine.lastEntry()?.let { graphBuilder.addEdge(node, it.value) }
-                thisLine.put(token.position.first, node)
-            }
-            previousLine = thisLine
-        }
-        return graphBuilder.build()
+        )
     }
 
     sealed interface BlockContent {
@@ -83,5 +70,28 @@ object Day3 {
         data object Nothing : BlockContent
     }
 
-    data class SchemaNode(val x: Int, val y: IntRange, val content: BlockContent)
+    data class SchemaNode(val x: Int, val y: Range<Int>, val content: BlockContent) {
+        inline fun <reified T: BlockContent> filterContentByType(): TypedSchemaNode<T>? {
+            return if (content is T) {
+                TypedSchemaNode(x, y, content)
+            } else {
+                null
+            }
+        }
+    }
+
+    data class TypedSchemaNode<T: BlockContent>(val x: Int, val y: Range<Int>, val content: T) {
+        fun adjacent(): Sequence<Coordinate> {
+            return sequence {
+                for (row in IntRange(x - 1, x + 1)) {
+                    yield(Coordinate(row, y.lowerEndpoint() - 1))
+                    yield(Coordinate(row, y.upperEndpoint() + 1))
+                }
+                for (column in y.asSequence()) {
+                    yield(Coordinate(x - 1, column))
+                    yield(Coordinate(x + 1, column))
+                }
+            }
+        }
+    }
 }

@@ -85,6 +85,16 @@ class TwoDimensionalArray<out T>(
         }
     }
 
+    fun values(): Sequence<T> {
+        return sequence {
+            rowIndices().forEach { row ->
+                columnIndices().forEach { column ->
+                    yield(get(row, column))
+                }
+            }
+        }
+    }
+
     fun rows(): Sequence<Sequence<T>> {
         return rowIndices()
             .asSequence()
@@ -118,6 +128,10 @@ class TwoDimensionalArray<out T>(
     companion object {
         fun charsFromLines(lines: List<String>): TwoDimensionalArray<Char> {
             return TwoDimensionalArray(lines.size, lines[0].length) { i, j -> lines[i][j] }
+        }
+
+        fun <T> create(rows: List<List<T>>): TwoDimensionalArray<T> {
+            return TwoDimensionalArray(rows.size, rows[0].size) { i, j -> rows[i][j] }
         }
     }
 }
