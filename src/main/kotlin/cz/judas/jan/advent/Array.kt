@@ -23,6 +23,10 @@ class TwoDimensionalArray<out T>(
         return getOrNull(position.row, position.column)
     }
 
+    fun getOrDefault(position: Coordinate, defaultValue: @UnsafeVariance T): T {
+        return getOrNull(position) ?: defaultValue
+    }
+
     fun rotateRight(): TwoDimensionalArray<T> {
         return TwoDimensionalArray(numColumns, numRows) { row, column -> get(numRows - 1 - column, row) }
     }

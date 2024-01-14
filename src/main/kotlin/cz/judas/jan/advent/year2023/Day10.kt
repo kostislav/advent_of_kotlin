@@ -38,7 +38,7 @@ object Day10 {
         val startingDirections = Direction.entries
             .filter { direction ->
                 val neighborPosition = startingPosition + direction.movement
-                val neighborDirections = pipeTypes.getValue(diagram.getOrNull(neighborPosition) ?: '.')
+                val neighborDirections = pipeTypes.getValue(diagram.getOrDefault(neighborPosition, '.'))
                 direction.inverse() in neighborDirections
             }
             .toSet()
@@ -52,7 +52,7 @@ object Day10 {
         }
 
         return generateSequence(Step(startingPosition, fixedDiagram[startingPosition].first())) { step ->
-            val nextPosition = step.nextPosition()
+            val nextPosition = step.position + step.direction
             val nextDirection = fixedDiagram[nextPosition].first { it != step.direction.inverse() }
             Step(nextPosition, nextDirection)
         }
@@ -64,9 +64,5 @@ object Day10 {
     data class Step(
         val position: Coordinate,
         val direction: Direction
-    ) {
-        fun nextPosition(): Coordinate {
-            return position + direction.movement
-        }
-    }
+    )
 }

@@ -63,7 +63,7 @@ object Day23 {
             edges.getOrCreate(edge.end)[edge.start] = edge.weight
             edges.getOrCreate(edge.start)[edge.end] = edge.weight
         }
-        val nodeMasks = edges.keys.mapIndexed{index, node -> node to (1L shl index) }.toMap()
+        val nodeMasks = edges.keys.mapIndexed { index, node -> node to (1L shl index) }.toMap()
 
         return recursive(start, 0L, cached = false) { current, visited, recursion ->
             if (current == end) {
@@ -101,7 +101,7 @@ object Day23 {
             var current = currentPathStart + startingDirection
             if (current !in visited) {
                 while (current != end && current !in intersections) {
-                    val possibleDirections = Direction.entries.filter { (map.getOrNull(current + it) ?: '#') != '#' }
+                    val possibleDirections = Direction.entries.filter { (map.getOrDefault(current + it, '#')) != '#' }
                     if (possibleDirections.size > 2) {
                         intersections += current
                         for (nextDirection in possibleDirections) {
