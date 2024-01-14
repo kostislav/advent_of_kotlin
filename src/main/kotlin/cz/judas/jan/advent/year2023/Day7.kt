@@ -21,7 +21,7 @@ object Day7 {
             .map { line ->
                 val game = parser.parse(line)
                 val score = game.hand.histogram().values.sorted().reversed()
-                Pair(score, game.hand.map { labelIndexes.getValue(it) }) to game.bid
+                AnalyzedHand(score, game.hand.map { labelIndexes.getValue(it) }, game.bid)
             }
             .let(::totalWinnings)
     }
@@ -33,23 +33,25 @@ object Day7 {
         return input.lines()
             .map { line ->
                 val game = parser.parse(line)
-                val score = game.hand.filterNot { it == 'J' }.histogram().values.sorted().reversed()
+                val scoreWithoutJokers = game.hand.filterNot { it == 'J' }.histogram().values.sorted().reversed()
                 val numJokers = game.hand.count { it == 'J' }
-                val improvedScore = if (score.isNotEmpty()) {
-                    listOf(score[0] + numJokers) + score.subList(1)
+                val scoreWithJokers = if (scoreWithoutJokers.isNotEmpty()) {
+                    listOf(scoreWithoutJokers[0] + numJokers) + scoreWithoutJokers.subList(1)
                 } else {
                     listOf(numJokers)
                 }
-                Pair(improvedScore, game.hand.map { labelIndexes.getValue(it) }) to game.bid
+                AnalyzedHand(scoreWithJokers, game.hand.map { labelIndexes.getValue(it) }, game.bid)
             }
             .let(::totalWinnings)
     }
 
-    private fun totalWinnings(games: List<Pair<Pair<List<Int>, List<Int>>, Int>>): Int {
+    private fun totalWinnings(games: List<AnalyzedHand>): Int {
         return games
-            .sortedWith(HandComparator)
-            .map { it.second }
-            .mapIndexedFrom(1) { index, bid -> index * bid }
+            .sortedWith(
+                Comparator.comparing(AnalyzedHand::valueHistogram, LexicographicalListComparator.natural())
+                    .then(Comparator.comparing(AnalyzedHand::cards, LexicographicalListComparator.natural()))
+            )
+            .mapIndexedFrom(1) { index, hand -> index * hand.bid }
             .sum()
     }
 
@@ -59,12 +61,9 @@ object Day7 {
         val bid: Int
     )
 
-    object HandComparator: Comparator<Pair<Pair<List<Int>, List<Int>>, Int>> {
-        private val intListComparator = LexicographicalListComparator.natural<Int>()
-
-        override fun compare(o1: Pair<Pair<List<Int>, List<Int>>, Int>, o2: Pair<Pair<List<Int>, List<Int>>, Int>): Int {
-            val primary = intListComparator.compare(o1.first.first, o2.first.first)
-            return if (primary != 0) primary else intListComparator.compare(o1.first.second, o2.first.second)
-        }
-    }
+    data class AnalyzedHand(
+        val valueHistogram: List<Int>,
+        val cards: List<Int>,
+        val bid: Int
+    )
 }
