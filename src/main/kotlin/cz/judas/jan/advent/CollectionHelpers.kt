@@ -271,7 +271,7 @@ fun <T, K> Iterable<T>.associateByMultiple(keySelector: (T) -> Iterable<K>): Map
     return destination
 }
 
-fun <T, O> List<T>.translate(lookup: Map<T, O>): List<O> {
+fun <T, O> Iterable<T>.translate(lookup: Map<T, O>): List<O> {
     return map { lookup.getValue(it) }
 }
 
@@ -287,6 +287,12 @@ fun <T1, T2, R> Iterable<Pair<T1, T2>>.scanSecond(initial: R, operation: (acc: R
         result.add(Pair(element.first, accumulator))
     }
     return result
+}
+
+inline fun <T> Iterable<T>.partitionIndexed(predicate: (Int, T) -> Boolean): Pair<List<T>, List<T>> {
+    return withIndex()
+        .partition { predicate(it.index, it.value) }
+        .map { part -> part.map { it.value } }
 }
 
 class LexicographicalListComparator<T>(
