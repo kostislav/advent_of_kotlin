@@ -51,7 +51,25 @@ inline fun <T, reified U1, reified U2> lambdaParser(@Language("RegExp") pattern:
     )
 }
 
+inline fun <T, reified U1, reified U2, reified U3> lambdaParser(@Language("RegExp") pattern: String, noinline function: (U1, U2, U3) -> T): Parser<T> {
+    val wrapper = Function3Wrapper(function)
+    return PatterFunctionParser(
+        Regex(pattern),
+        wrapper::call,
+        listOf(
+            buildParser(typeOf<U1>()),
+            buildParser(typeOf<U2>()),
+            buildParser(typeOf<U3>()),
+        )
+    )
+}
+
 inline fun <T, reified U1, reified U2> List<String>.mapParsing(@Language("RegExp") pattern: String, noinline function: (U1, U2) -> T): List<T> {
+    val parser = lambdaParser(pattern, function)
+    return map(parser::parse)
+}
+
+inline fun <T, reified U1, reified U2, reified U3> List<String>.mapParsing(@Language("RegExp") pattern: String, noinline function: (U1, U2, U3) -> T): List<T> {
     val parser = lambdaParser(pattern, function)
     return map(parser::parse)
 }
@@ -265,6 +283,11 @@ class Function2Wrapper<T1, T2, U>(private val function: (T1, T2) -> U) {
     }
 }
 
+class Function3Wrapper<T1, T2, T3, U>(private val function: (T1, T2, T3) -> U) {
+    fun call(param1: T1, param2: T2, param3: T3): U {
+        return function(param1, param2, param3)
+    }
+}
 
 class SealedClassParser<T>(
     private val options: List<PatterFunctionParser<T>>

@@ -3,48 +3,42 @@ package cz.judas.jan.advent.year2015
 import com.google.common.collect.Ordering
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
-import cz.judas.jan.advent.Pattern
-import cz.judas.jan.advent.SplitOn
-import cz.judas.jan.advent.parserFor
-import cz.judas.jan.advent.product
+import cz.judas.jan.advent.mapParsing
 
 object Day2 {
-    val parser = parserFor<Present>()
-
     @Answer("1606483")
     fun part1(input: InputData): Int {
-        return input.lines()
-            .map(parser::parse)
-            .sumOf(::part1)
+        return lineSum(input, ::part1)
+    }
+
+    @Answer("3842356")
+    fun part2(input: InputData): Int {
+        return lineSum(input, ::part2)
     }
 
     fun part1(present: Present): Int {
         return present.surfaceArea() + present.smallestSide().area()
     }
 
-    @Answer("3842356")
-    fun part2(input: InputData): Int {
-        return input.lines()
-            .map(parser::parse)
-            .sumOf(::part2)
-    }
-
     fun part2(present: Present): Int {
         return present.smallestSide().perimeter() + present.volume()
     }
 
-    @Pattern("(.+)")
-    data class Present(val dimensions: @SplitOn("x") List<Int>) {
-        fun surfaceArea(): Int {
-            return 2 * (dimensions[0] * dimensions[1] + dimensions[1] * dimensions[2] + dimensions[2] * dimensions[0])
-        }
+    private fun lineSum(input: InputData, transformation: (Present) -> Int): Int {
+        return input.lines()
+            .mapParsing("(\\d+)x(\\d+)x(\\d+)", ::Present)
+            .sumOf(transformation)
+    }
+
+    data class Present(val a: Int, val b: Int, val c: Int) {
+        fun surfaceArea(): Int = 2 * (a * b + b * c + a * c)
 
         fun smallestSide(): Side {
-            val (smallestSideLength, secondSmallestSideLength) = Ordering.natural<Int>().leastOf(dimensions, 2)
+            val (smallestSideLength, secondSmallestSideLength) = Ordering.natural<Int>().leastOf(listOf(a, b, c), 2)
             return Side(smallestSideLength, secondSmallestSideLength)
         }
 
-        fun volume(): Int = dimensions.product()
+        fun volume(): Int = a * b * c
     }
 
     data class Side(val a: Int, val b: Int) {
