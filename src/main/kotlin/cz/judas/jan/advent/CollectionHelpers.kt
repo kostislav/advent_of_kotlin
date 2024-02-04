@@ -295,6 +295,10 @@ inline fun <T> Iterable<T>.partitionIndexed(predicate: (Int, T) -> Boolean): Pai
         .map { part -> part.map { it.value } }
 }
 
+inline fun <T1, T2, O> Sequence<Pair<T1, T2>>.mapSecond(crossinline transformation: (T2) -> O): Sequence<Pair<T1, O>> {
+    return map { it.first to transformation(it.second) }
+}
+
 class LexicographicalListComparator<T>(
     private val itemComparator: Comparator<T>
 ) : Comparator<List<T>> {
