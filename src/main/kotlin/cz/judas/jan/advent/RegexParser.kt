@@ -17,10 +17,10 @@ import kotlin.reflect.typeOf
 annotation class Pattern(@Language("RegExp") val pattern: String)
 
 @Target(AnnotationTarget.TYPE)
-annotation class SplitOn(vararg val delimiters: String)
-
-@Target(AnnotationTarget.TYPE)
-annotation class SplitOnPattern(@Language("RegExp") val delimiterPattern: String)
+annotation class SplitOn(vararg val delimiters: String) {
+    @Target(AnnotationTarget.TYPE)
+    annotation class Whitespace
+}
 
 interface ParsedFromString {
     val stringValue: String
@@ -93,8 +93,8 @@ fun buildParser(type: KType): Parser<Any> {
                 val itemType = type.arguments[0].type!!
                 val splitOnAnnotation = type.getAnnotation(SplitOn::class)
                 if (splitOnAnnotation === null) {
-                    val splitOnPatternAnnotation = type.getAnnotation(SplitOnPattern::class)
-                    if (splitOnPatternAnnotation === null) {
+                    val splitOnWhitespaceAnnotation = type.getAnnotation(SplitOn.Whitespace::class)
+                    if (splitOnWhitespaceAnnotation === null) {
                         val patternAnnotation = itemType.getAnnotation(Pattern::class)
                         if (patternAnnotation === null) {
                             if (itemType.classifier == Char::class) {
@@ -110,7 +110,7 @@ fun buildParser(type: KType): Parser<Any> {
                         }
                     } else {
                         return PatternSplittingListParser(
-                            Regex(splitOnPatternAnnotation.delimiterPattern),
+                            "\\s+".toRegex(),
                             buildParser(itemType)
                         )
                     }

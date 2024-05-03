@@ -108,7 +108,7 @@ class RegexParserTest {
     data class WithList(val first: String, val second: @SplitOn(", ") List<Int>)
 
     @Pattern("([a-z]+) is another list with (.+)")
-    data class WithPatternDelimitedList(val first: String, val second: @SplitOnPattern("\\s+") List<Int>)
+    data class WithPatternDelimitedList(val first: String, val second: @SplitOn.Whitespace List<Int>)
 
     @Pattern("([a-z]+) is a ([a-z]+)")
     data class WithEnum(val first: String, val second: ExampleEnum)

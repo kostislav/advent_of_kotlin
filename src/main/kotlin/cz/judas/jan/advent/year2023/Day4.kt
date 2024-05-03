@@ -3,7 +3,7 @@ package cz.judas.jan.advent.year2023
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
-import cz.judas.jan.advent.SplitOnPattern
+import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.parse
 import cz.judas.jan.advent.parserFor
 
@@ -36,8 +36,8 @@ object Day4 {
     @Pattern("Card +(\\d+): (.+) \\| (.+)")
     data class Card(
         val number: Int,
-        val winningNumbers: @SplitOnPattern("\\s+") List<Int>,
-        val numbersIHave: @SplitOnPattern("\\s+") List<Int>,
+        val winningNumbers: @SplitOn.Whitespace List<Int>,
+        val numbersIHave: @SplitOn.Whitespace List<Int>,
     ) {
         fun numMatches(): Int = numbersIHave.toSet().intersect(winningNumbers.toSet()).size
     }

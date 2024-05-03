@@ -4,10 +4,9 @@ import com.google.common.collect.Range
 import cz.judas.jan.advent.Answer
 import cz.judas.jan.advent.InputData
 import cz.judas.jan.advent.Pattern
-import cz.judas.jan.advent.SplitOnPattern
+import cz.judas.jan.advent.SplitOn
 import cz.judas.jan.advent.enclosedLongRange
 import cz.judas.jan.advent.length
-import cz.judas.jan.advent.parserFor
 import cz.judas.jan.advent.parserUsing
 import cz.judas.jan.advent.product
 import cz.judas.jan.advent.splitOnOnly
@@ -37,8 +36,8 @@ object Day6 {
 
     @Pattern("Time:\\s+(.*)\nDistance:\\s+(.*)")
     fun parseInput(
-        times: @SplitOnPattern("\\s+") List<Int>,
-        distances: @SplitOnPattern("\\s+") List<Int>
+        times: @SplitOn.Whitespace List<Int>,
+        distances: @SplitOn.Whitespace List<Int>
     ): List<Game> {
         return times.zip(distances).map { (time, distance) -> Game(time, distance) }
     }
